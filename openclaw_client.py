@@ -52,7 +52,7 @@ def stream_response(
         input_val = user_text
 
     body = {
-        "model": "openclaw",
+        "model": config.OPENCLAW_MODEL,
         "stream": True,
         "input": input_val,
     }

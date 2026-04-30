@@ -96,6 +96,7 @@ Edit `.env`:
 OPENAI_API_KEY=sk-your-openai-api-key
 OPENCLAW_TOKEN=your-openclaw-gateway-token
 OPENCLAW_BASE_URL=https://gateway-host.tailnet-name.ts.net
+OPENCLAW_MODEL=openclaw/daemon
 ENABLE_TTS=true
 AUDIO_DEVICE=plughw:1,0
 AUDIO_OUTPUT_DEVICE=plughw:1,0
@@ -120,6 +121,7 @@ All settings are configured via environment variables (loaded from `.env`):
 | `OPENAI_API_KEY` | _(required)_ | OpenAI API key for transcription and OpenAI TTS |
 | `OPENCLAW_TOKEN` | _(required)_ | Auth token for the OpenClaw gateway |
 | `OPENCLAW_BASE_URL` | `http://localhost:18789` | Remote OpenClaw gateway URL; for Tailscale Serve use the HTTPS serve URL |
+| `OPENCLAW_MODEL` | `openclaw/daemon` | OpenClaw agent target for Imp Zero |
 | `OPENAI_TRANSCRIBE_MODEL` | `gpt-4o-mini-transcribe` | Speech-to-text model |
 | `ENABLE_TTS` | `true` | Speak responses aloud |
 | `TTS_PROVIDER` | `openai` | `openai` or `elevenlabs` |

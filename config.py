@@ -32,6 +32,7 @@ ELEVENLABS_SIMILARITY_BOOST = os.environ.get("ELEVENLABS_SIMILARITY_BOOST", "")
 
 OPENCLAW_BASE_URL = os.environ.get("OPENCLAW_BASE_URL", "http://localhost:18789")
 OPENCLAW_TOKEN = os.environ.get("OPENCLAW_TOKEN", "")
+OPENCLAW_MODEL = os.environ.get("OPENCLAW_MODEL", "openclaw/daemon")
 
 AUDIO_DEVICE = os.environ.get("AUDIO_DEVICE", "plughw:1,0")
 AUDIO_OUTPUT_DEVICE = os.environ.get("AUDIO_OUTPUT_DEVICE", "plughw:1,0")
@@ -68,6 +69,7 @@ def print_config():
     print(f"ELEVENLABS_API_KEY set  = {bool(ELEVENLABS_API_KEY)}")
     print(f"ELEVENLABS_VOICE_ID set = {bool(ELEVENLABS_VOICE_ID)}")
     print(f"OPENCLAW_BASE_URL       = {OPENCLAW_BASE_URL}")
+    print(f"OPENCLAW_MODEL          = {OPENCLAW_MODEL}")
     print(f"AUDIO_DEVICE            = {AUDIO_DEVICE}")
     print(f"AUDIO_OUTPUT_DEVICE     = {AUDIO_OUTPUT_DEVICE}")
     print(f"AUDIO_SAMPLE_RATE       = {AUDIO_SAMPLE_RATE}")
