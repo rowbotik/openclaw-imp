@@ -33,7 +33,8 @@ STATUS_SUB_FONT_SIZE = 12
 RESPONSE_FONT_SIZE = 17
 TITLE_FONT_SIZE = 14
 BATTERY_FONT_SIZE = 10
-IMP_LABEL_FONT_SIZE = 42
+IMP_LABEL_FONT_SIZE = 13
+IMP_LABEL_SCALE = 2
 ACCENT_BAR_HEIGHT = 3
 POWER_SUPPLY_SYS = "/sys/class/power_supply"
 PISUGAR_SOCKET = "/tmp/pisugar-server.sock"
@@ -880,6 +881,26 @@ class Display:
         self._cached_paragraphs = []
         self._cached_wrapped = []
 
+    def _draw_pixel_text(
+        self,
+        image: Image.Image,
+        xy: tuple[int, int],
+        text: str,
+        font: ImageFont.FreeTypeFont,
+        fill: tuple[int, int, int],
+        scale: int = 2,
+    ):
+        bbox = font.getbbox(text)
+        width = max(1, bbox[2] - bbox[0])
+        height = max(1, bbox[3] - bbox[1])
+        mask = Image.new("L", (width, height), 0)
+        mask_draw = ImageDraw.Draw(mask)
+        mask_draw.text((-bbox[0], -bbox[1]), text, font=font, fill=255)
+        resample = Image.Resampling.NEAREST if hasattr(Image, "Resampling") else Image.NEAREST
+        mask = mask.resize((width * scale, height * scale), resample=resample)
+        color = Image.new("RGB", mask.size, fill)
+        image.paste(color, xy, mask)
+
     def set_idle_screen(self):
         """Draw idle screen with the Imp logo, battery, and wifi status."""
         img = self._sprite_frames.get(_idle_mood_key(), self._sprite_frames["idle"]).copy()
@@ -896,12 +917,15 @@ class Display:
             draw.text((self._pad_x, self._pad_y), "\u25cb", font=self._battery_font, fill=(180, 60, 60))
 
         label = "Imp"
-        lw = self._imp_font.getlength(label)
-        draw.text(
-            (int((self._width - lw) / 2), 184),
+        bbox = self._imp_font.getbbox(label)
+        lw = (bbox[2] - bbox[0]) * IMP_LABEL_SCALE
+        self._draw_pixel_text(
+            img,
+            (int((self._width - lw) / 2), 190),
             label,
-            font=self._imp_font,
+            self._imp_font,
             fill=(255, 255, 255),
+            scale=IMP_LABEL_SCALE,
         )
 
         self._draw(img)
