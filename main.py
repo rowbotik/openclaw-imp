@@ -45,7 +45,7 @@ class Assistant:
         self._dismiss = threading.Event()
         self._worker_gen = 0
         self._response_hold_timeout = 30
-        self._sleep_timeout = 60
+        self._sleep_timeout = config.DISPLAY_SLEEP_TIMEOUT
         self._last_activity = time.monotonic()
         self._last_idle_refresh = 0.0
         self._state_entered_at = 0.0
@@ -277,7 +277,7 @@ class Assistant:
                 self._shutdown.wait(timeout=1.0)
                 worker_busy = self._worker_thread is not None and self._worker_thread.is_alive()
 
-                # Refresh idle screen periodically (clock update)
+                # Refresh idle screen periodically.
                 if (
                     not self.display.is_sleeping
                     and self.ptt.state == State.IDLE
@@ -289,6 +289,8 @@ class Assistant:
 
                 # Sleep display after inactivity
                 if (
+                    self._sleep_timeout > 0
+                    and
                     not self.display.is_sleeping
                     and self.ptt.state == State.IDLE
                     and not worker_busy

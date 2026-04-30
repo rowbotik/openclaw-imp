@@ -40,7 +40,7 @@ python3 render_imp_sprites.py
 - Python 3.11+
 - An [OpenAI API key](https://platform.openai.com/api-keys) for speech-to-text
 - An optional ElevenLabs API key and voice ID if using ElevenLabs TTS
-- A remote [OpenClaw](https://openclaw.ai) gateway reachable over your private network, such as Tailscale/WireGuard
+- A remote [OpenClaw](https://openclaw.ai) gateway reachable through Tailscale Serve
 
 Recommended Raspberry Pi Imager settings:
 
@@ -95,7 +95,7 @@ Edit `.env`:
 ```bash
 OPENAI_API_KEY=sk-your-openai-api-key
 OPENCLAW_TOKEN=your-openclaw-gateway-token
-OPENCLAW_BASE_URL=http://openclaw-host.tailnet:18789
+OPENCLAW_BASE_URL=https://gateway-host.tailnet-name.ts.net
 ENABLE_TTS=true
 AUDIO_DEVICE=plughw:1,0
 AUDIO_OUTPUT_DEVICE=plughw:1,0
@@ -119,7 +119,7 @@ All settings are configured via environment variables (loaded from `.env`):
 |---|---|---|
 | `OPENAI_API_KEY` | _(required)_ | OpenAI API key for transcription and OpenAI TTS |
 | `OPENCLAW_TOKEN` | _(required)_ | Auth token for the OpenClaw gateway |
-| `OPENCLAW_BASE_URL` | `http://localhost:18789` | Remote OpenClaw gateway URL |
+| `OPENCLAW_BASE_URL` | `http://localhost:18789` | Remote OpenClaw gateway URL; for Tailscale Serve use the HTTPS serve URL |
 | `OPENAI_TRANSCRIBE_MODEL` | `gpt-4o-mini-transcribe` | Speech-to-text model |
 | `ENABLE_TTS` | `true` | Speak responses aloud |
 | `TTS_PROVIDER` | `openai` | `openai` or `elevenlabs` |
@@ -136,6 +136,7 @@ All settings are configured via environment variables (loaded from `.env`):
 | `AUDIO_SAMPLE_RATE` | `16000` | Recording sample rate |
 | `LCD_BACKLIGHT` | `70` | Backlight brightness (0–100) |
 | `UI_MAX_FPS` | `3` | Max display refresh rate; intentionally low for chunky Gigapet-style animation |
+| `DISPLAY_SLEEP_TIMEOUT` | `0` | Seconds before blanking the display while idle; `0` keeps the Imp visible |
 | `CONVERSATION_HISTORY_LENGTH` | `5` | Past exchanges to keep for context |
 | `SILENCE_RMS_THRESHOLD` | `200` | Audio RMS below this is skipped |
 

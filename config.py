@@ -42,6 +42,7 @@ DRY_RUN = not OPENAI_API_KEY
 
 LCD_BACKLIGHT = int(os.environ.get("LCD_BACKLIGHT", "70"))
 UI_MAX_FPS = int(os.environ.get("UI_MAX_FPS", "4"))
+DISPLAY_SLEEP_TIMEOUT = float(os.environ.get("DISPLAY_SLEEP_TIMEOUT", "0"))
 
 # Speak the assistant response through the selected TTS provider.
 ENABLE_TTS = os.environ.get("ENABLE_TTS", "true").lower() in ("true", "1", "yes")
