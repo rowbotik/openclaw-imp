@@ -215,7 +215,7 @@ def apply_volume(values: dict[str, str]) -> None:
 
 
 def test_tts(phrase: str) -> tuple[bool, str]:
-    phrase = (phrase or "Imp voice check.").strip()[:240]
+    phrase = (phrase or "Imp voice check.").strip()[:500]
     code = (
         "from tts_openai import TTSPlayer; "
         "p=TTSPlayer(); "
@@ -370,7 +370,7 @@ def render_page(message: str = "") -> bytes:
       <button class="secondary" type="submit" formaction="/restart">Restart Only</button>
       <button class="secondary" type="reset">Reset Unsaved</button>
       <button class="secondary" type="button" onclick="window.location.reload()">Reload Current</button>
-      <input class="sample" name="TEST_PHRASE" value="Imp voice check. Fable mode.">
+      <input class="sample" name="TEST_PHRASE" maxlength="500" value="Imp voice check. Fable mode.">
       <button class="secondary" type="submit" formaction="/test-tts">Test Speak</button>
     </section>
   </form>
