@@ -921,7 +921,7 @@ class Display:
         lw = (bbox[2] - bbox[0]) * IMP_LABEL_SCALE
         self._draw_pixel_text(
             img,
-            (int((self._width - lw) / 2), 190),
+            (int((self._width - lw) / 2), 212),
             label,
             self._imp_font,
             fill=(255, 255, 255),
