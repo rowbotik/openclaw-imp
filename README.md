@@ -14,6 +14,10 @@ Button press -> Record audio -> Transcribe (OpenAI) -> Stream LLM response (Open
 3. The transcript (with conversation history) is streamed to an **OpenClaw gateway** for a response
 4. Text streams onto the **LCD** in real time with pixel-accurate word wrapping
 5. Optionally **speaks the response** via OpenAI or ElevenLabs TTS as sentences complete
+
+Markdown tables and other display-friendly formatting are cleaned before TTS so
+the LCD can still show structured text without the speaker reading pipes,
+separator rows, or raw links aloud.
 6. The idle screen shows a **clock, date, battery %, and WiFi status**
 
 The device maintains **conversation memory** across exchanges and includes a **silence gate** to skip empty recordings.
@@ -196,6 +200,7 @@ display.py            — LCD rendering (status, responses, idle clock, spinner)
 openclaw_client.py    — Streaming HTTP client for the remote OpenClaw gateway
 transcribe_openai.py  — Speech-to-text via OpenAI API
 tts_openai.py         — Text-to-speech via OpenAI or ElevenLabs + ALSA playback
+speech_text.py        — Markdown-to-speech cleanup for streamed TTS
 dashboard.py          — LAN settings dashboard
 record_audio.py       — Audio recording via ALSA arecord
 button_ptt.py         — Push-to-talk button state machine

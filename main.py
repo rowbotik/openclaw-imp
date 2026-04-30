@@ -1,5 +1,4 @@
 import logging
-import re
 import signal
 import sys
 import threading
@@ -23,6 +22,7 @@ from transcribe_openai import transcribe
 from openclaw_client import stream_response
 from button_ptt import ButtonPTT, State
 from tts_openai import TTSPlayer
+from speech_text import SpeechChunker
 
 
 class Assistant:
@@ -180,7 +180,7 @@ class Assistant:
         self.ptt.state = State.STREAMING
         first_token = True
         full_response = ""
-        tts_buffer = ""
+        speech_chunker = SpeechChunker()
         stream_t0 = time.monotonic()
 
         for delta in stream_response(transcript, history=self._conversation_history):
@@ -198,16 +198,9 @@ class Assistant:
             if not self._tts:
                 self.display.append_response(delta)
 
-            # Streaming TTS: batch 2–3 sentences for natural flow
             if self._tts:
-                tts_buffer += delta
-                sentence_ends = list(re.finditer(r"[.!?]\s|\n", tts_buffer))
-                if len(sentence_ends) >= 2:
-                    cut = sentence_ends[1].end()
-                    chunk = tts_buffer[:cut].strip()
-                    tts_buffer = tts_buffer[cut:]
-                    if chunk:
-                        self._tts.submit(chunk)
+                for speech_chunk in speech_chunker.append(delta):
+                    self._tts.submit(speech_chunk)
 
         # Stale worker: exit without touching display, TTS, or history
         if self._is_stale(my_gen):
@@ -217,8 +210,8 @@ class Assistant:
 
         # Submit remaining TTS buffer and wait for playback to finish
         if self._tts:
-            if tts_buffer.strip():
-                self._tts.submit(tts_buffer.strip())
+            for speech_chunk in speech_chunker.flush():
+                self._tts.submit(speech_chunk)
             self._tts.flush()
             self.display.stop_character()
             self.display.set_response_text(full_response)
