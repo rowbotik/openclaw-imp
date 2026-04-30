@@ -142,7 +142,7 @@ All settings are configured via environment variables (loaded from `.env`):
 | `UI_MAX_FPS` | `3` | Max display refresh rate; intentionally low for chunky Gigapet-style animation |
 | `DISPLAY_SLEEP_TIMEOUT` | `0` | Seconds before blanking the display while idle; `0` keeps the Imp visible |
 | `IMP_IDLE_MOOD` | `happy` | Idle sprite mood shown on the LCD |
-| `IMP_BODY_COLOR` | `yellow` | Imp body palette: `yellow`, `cream`, `red`, `blue`, or `green` |
+| `IMP_BODY_COLOR` | `yellow` | Imp body palette: `yellow`, `pink`, `red`, `blue`, or `green` |
 | `CONVERSATION_HISTORY_LENGTH` | `5` | Past exchanges to keep for context |
 | `SILENCE_RMS_THRESHOLD` | `200` | Audio RMS below this is skipped |
 

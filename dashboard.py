@@ -27,7 +27,7 @@ OPENAI_VOICES = [
     "alloy", "ash", "ballad", "coral", "echo", "fable", "marin",
     "nova", "onyx", "sage", "shimmer", "verse", "cedar",
 ]
-BODY_COLORS = ["yellow", "cream", "red", "blue", "green"]
+BODY_COLORS = ["yellow", "pink", "red", "blue", "green"]
 IDLE_MOODS = [
     "happy", "idle", "excited", "proud", "curious", "sleepy", "love",
     "sad", "angry", "alert", "connected", "low_power", "error",
@@ -115,6 +115,8 @@ def normalize_value(key: str, raw: str) -> str:
         return DEFAULTS[key]
     if key == "OPENAI_TTS_VOICE" and value not in OPENAI_VOICES:
         return DEFAULTS[key]
+    if key == "IMP_BODY_COLOR" and value == "cream":
+        return "pink"
     if key == "IMP_BODY_COLOR" and value not in BODY_COLORS:
         return DEFAULTS[key]
     if key == "IMP_IDLE_MOOD" and value not in IDLE_MOODS:

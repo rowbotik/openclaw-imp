@@ -235,12 +235,12 @@ _BODY_PALETTES = {
         "cheek": (255, 177, 38),
         "zap": (255, 221, 48),
     },
-    "cream": {
-        "body": (255, 248, 220),
-        "highlight": (255, 255, 244),
-        "outline": (136, 112, 58),
-        "foot": (232, 212, 150),
-        "cheek": (255, 180, 132),
+    "pink": {
+        "body": (255, 129, 190),
+        "highlight": (255, 188, 220),
+        "outline": (136, 34, 86),
+        "foot": (229, 89, 164),
+        "cheek": (255, 207, 226),
         "zap": (255, 232, 78),
     },
     "red": {
@@ -268,7 +268,8 @@ _BODY_PALETTES = {
         "zap": (255, 221, 48),
     },
 }
-_PALETTE = _BODY_PALETTES.get(config.IMP_BODY_COLOR, _BODY_PALETTES["yellow"])
+_body_palette_name = "pink" if config.IMP_BODY_COLOR == "cream" else config.IMP_BODY_COLOR
+_PALETTE = _BODY_PALETTES.get(_body_palette_name, _BODY_PALETTES["yellow"])
 
 _C_BODY = _PALETTE["body"]
 _C_HIGHLIGHT = _PALETTE["highlight"]
