@@ -664,6 +664,21 @@ def _apply_accessory(sprite: Image.Image, accessory: str) -> Image.Image:
     return img
 
 
+def _sprite_nonblack_mask(sprite: Image.Image) -> Image.Image:
+    if _HAS_NUMPY:
+        arr = np.asarray(sprite)
+        alpha = (arr[:, :, 0] | arr[:, :, 1] | arr[:, :, 2]) > 0
+        return Image.fromarray((alpha.astype(np.uint8) * 255), mode="L")
+    mask = Image.new("L", sprite.size, 0)
+    pixels = sprite.load()
+    mask_pixels = mask.load()
+    for y in range(sprite.height):
+        for x in range(sprite.width):
+            if pixels[x, y] != (0, 0, 0):
+                mask_pixels[x, y] = 255
+    return mask
+
+
 def _make_sprite(eyes_fn, mouth_fn, decor_fn=None) -> Image.Image:
     img = Image.new("RGB", (240, 240), (0, 0, 0))
     draw = ImageDraw.Draw(img)
@@ -985,15 +1000,14 @@ class Display:
         y_shift: int = 0,
         shadow: bool = False,
     ) -> Image.Image:
-        if sprite.size == (self._width, self._height) and y_shift == 0:
+        if sprite.size == (self._width, self._height) and y_shift == 0 and not shadow:
             img = sprite.copy()
-            if shadow:
-                self._draw_ground_shadow(ImageDraw.Draw(img), self._sprite_y_offset(sprite), y_shift)
             return img
         img = Image.new("RGB", (self._width, self._height), (0, 0, 0))
         if shadow:
             self._draw_ground_shadow(ImageDraw.Draw(img), self._sprite_y_offset(sprite), y_shift)
-        img.paste(sprite, (0, self._sprite_y_offset(sprite) - y_shift))
+        mask = _sprite_nonblack_mask(sprite)
+        img.paste(sprite, (0, self._sprite_y_offset(sprite) - y_shift), mask)
         return img
 
     def _draw_ground_shadow(self, draw: ImageDraw.ImageDraw, y_offset: int, y_shift: int = 0):
