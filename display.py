@@ -613,8 +613,23 @@ def _idle_mood_key() -> str:
     return mood if mood in allowed else "happy"
 
 
-# Idle / done bob cycle (pixel offsets for gentle breathing)
-_BOB_CYCLE = [0, 0, 0, 0, 1, 2, 3, 4, 4, 4, 3, 2, 1, 0, 0, 0]
+# Idle / done bob cycle. More in-between frames make higher dashboard FPS values
+# feel like a float instead of a jump while preserving whole-pixel sprite motion.
+_BOB_CYCLE = [
+    0, 0, 0, 0, 0,
+    1, 1, 1, 1,
+    2, 2, 2,
+    3, 3, 3,
+    4, 4, 4, 4,
+    5, 5, 5,
+    6, 6, 6, 6, 6,
+    5, 5, 5,
+    4, 4, 4, 4,
+    3, 3, 3,
+    2, 2, 2,
+    1, 1, 1, 1,
+    0, 0, 0, 0, 0,
+]
 
 
 class Display:
@@ -963,6 +978,7 @@ class Display:
 
     def _character_loop(self):
         tick = 0
+        frame_delay = 1.0 / max(1, getattr(config, "UI_MAX_FPS", 4))
         while not self._char_stop.is_set():
             state = self._char_state
             tts = getattr(self, "_char_tts", None)
@@ -1040,7 +1056,7 @@ class Display:
             self._draw(img)
 
             tick += 1
-            self._char_stop.wait(timeout=0.1)
+            self._char_stop.wait(timeout=frame_delay)
 
     def _stop_animations(self):
         """Stop any running animation (spinner or character)."""

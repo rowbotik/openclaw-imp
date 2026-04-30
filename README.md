@@ -143,7 +143,7 @@ All settings are configured via environment variables (loaded from `.env`):
 | `SPEAKER_VOLUME` | `100` | ALSA speaker volume set before TTS playback |
 | `AUDIO_SAMPLE_RATE` | `16000` | Recording sample rate |
 | `LCD_BACKLIGHT` | `70` | Backlight brightness (0–100) |
-| `UI_MAX_FPS` | `3` | Max display refresh rate; intentionally low for chunky Gigapet-style animation |
+| `UI_MAX_FPS` | `8` | Max display refresh rate for sprite animation and response drawing |
 | `DISPLAY_SLEEP_TIMEOUT` | `0` | Seconds before blanking the display while idle; `0` keeps the Imp visible |
 | `IMP_IDLE_MOOD` | `happy` | Idle sprite mood shown on the LCD |
 | `IMP_BODY_COLOR` | `yellow` | Imp body palette: `yellow`, `pink`, `red`, `blue`, or `green` |

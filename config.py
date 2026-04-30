@@ -43,7 +43,7 @@ AUDIO_SAMPLE_RATE = int(os.environ.get("AUDIO_SAMPLE_RATE", "16000"))
 DRY_RUN = not OPENAI_API_KEY
 
 LCD_BACKLIGHT = int(os.environ.get("LCD_BACKLIGHT", "70"))
-UI_MAX_FPS = int(os.environ.get("UI_MAX_FPS", "4"))
+UI_MAX_FPS = int(os.environ.get("UI_MAX_FPS", "8"))
 DISPLAY_SLEEP_TIMEOUT = float(os.environ.get("DISPLAY_SLEEP_TIMEOUT", "0"))
 IMP_IDLE_MOOD = os.environ.get("IMP_IDLE_MOOD", "happy")
 IMP_BODY_COLOR = os.environ.get("IMP_BODY_COLOR", "yellow")

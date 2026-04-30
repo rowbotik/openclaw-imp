@@ -52,7 +52,7 @@ NUMERIC_KEYS = {
     "OPENAI_TTS_GAIN_DB": (0.0, 18.0),
     "SPEAKER_VOLUME": (0, 100),
     "LCD_BACKLIGHT": (0, 100),
-    "UI_MAX_FPS": (1, 12),
+    "UI_MAX_FPS": (1, 20),
     "DISPLAY_SLEEP_TIMEOUT": (0, 3600),
 }
 BOOL_KEYS = {"ENABLE_TTS"}
@@ -76,7 +76,7 @@ DEFAULTS = {
     "AUDIO_OUTPUT_CARD": "1",
     "SPEAKER_VOLUME": "100",
     "LCD_BACKLIGHT": "70",
-    "UI_MAX_FPS": "3",
+    "UI_MAX_FPS": "8",
     "DISPLAY_SLEEP_TIMEOUT": "0",
     "IMP_IDLE_MOOD": "happy",
     "IMP_BODY_COLOR": "yellow",
@@ -310,7 +310,7 @@ def render_page(message: str = "") -> bytes:
       <h2>Display</h2>
       <div class="grid">
         {input_range("LCD_BACKLIGHT", values, "Backlight", "0", "100", "1")}
-        {input_range("UI_MAX_FPS", values, "Animation FPS", "1", "12", "1")}
+        {input_range("UI_MAX_FPS", values, "Animation FPS", "1", "20", "1")}
         {input_text("DISPLAY_SLEEP_TIMEOUT", values, "Sleep timeout seconds", "number")}
         {select_box("IMP_IDLE_MOOD", values, "Idle mood", IDLE_MOODS)}
         {select_box("IMP_BODY_COLOR", values, "Body color", BODY_COLORS)}
