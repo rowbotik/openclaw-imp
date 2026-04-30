@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shlex
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -37,7 +38,7 @@ def exists(name):
 
 payload = json.load(sys.stdin)
 ssid = payload["ssid"]
-password = payload["password"]
+password = payload.get("password", "")
 priority = str(payload["priority"])
 connect_now = payload["connect"]
 con_name = payload["name"]
@@ -51,15 +52,16 @@ if not exists(con_name):
         "ssid", ssid,
     ])
 
-run([
+args = [
     "sudo", "nmcli", "connection", "modify", con_name,
-    "wifi-sec.key-mgmt", "wpa-psk",
-    "wifi-sec.psk", password,
     "connection.autoconnect", "yes",
     "connection.autoconnect-priority", priority,
     "ipv4.method", "auto",
     "ipv6.method", "auto",
-])
+]
+if password:
+    args.extend(["wifi-sec.key-mgmt", "wpa-psk", "wifi-sec.psk", password])
+run(args)
 
 if connect_now:
     run(["sudo", "nmcli", "connection", "up", con_name])
@@ -109,7 +111,7 @@ def install_profile(host: str, profile: WifiProfile, connect: bool) -> None:
         "name": profile.connection_name,
     }
     subprocess.run(
-        ["ssh", host, "python3", "-c", REMOTE_CODE],
+        ["ssh", host, f"python3 -c {shlex.quote(REMOTE_CODE)}"],
         input=json.dumps(payload),
         text=True,
         check=True,
@@ -139,6 +141,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Immediately switch Imp Zero to the first supplied SSID",
     )
+    parser.add_argument(
+        "--open",
+        action="store_true",
+        help="Install the supplied SSIDs as open networks without Keychain lookup",
+    )
     return parser.parse_args()
 
 
@@ -147,11 +154,8 @@ def main() -> int:
     for idx, ssid in enumerate(args.ssid):
         priority = args.priority + (idx * args.priority_step)
         print(f"Installing Wi-Fi profile for {ssid!r} on {args.host}...")
-        profile = WifiProfile(
-            ssid=ssid,
-            password=keychain_password(ssid),
-            priority=priority,
-        )
+        password = "" if args.open else keychain_password(ssid)
+        profile = WifiProfile(ssid=ssid, password=password, priority=priority)
         install_profile(args.host, profile, connect=args.connect and idx == 0)
         print(f"Installed {profile.connection_name} with priority {priority}.")
     return 0
