@@ -153,6 +153,8 @@ All settings are configured via environment variables (loaded from `.env`):
 | `IMP_IDLE_MOOD` | `happy` | Idle sprite mood shown on the LCD |
 | `IMP_BODY_COLOR` | `yellow` | Imp body palette: `yellow`, `pink`, `red`, `blue`, or `green` |
 | `IMP_ACCESSORY_MODE` | `random` | Random pixel accessories: `off`, `random`, or `always` |
+| `IMP_FLOAT_PIXELS` | `3` | Maximum idle/done float offset in pixels |
+| `IMP_SHADOW` | `true` | Draw a subtle gray pixel shadow under the Imp |
 | `ENABLE_LED` | `true` | Use the WhisPlay RGB status LED |
 | `LED_IDLE_BRIGHTNESS` | `0` | Idle LED brightness, `0` keeps it off |
 | `CONVERSATION_HISTORY_LENGTH` | `5` | Past exchanges to keep for context |

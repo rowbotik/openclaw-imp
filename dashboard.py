@@ -65,10 +65,11 @@ NUMERIC_KEYS = {
     "SPEAKER_VOLUME": (0, 100),
     "LCD_BACKLIGHT": (0, 100),
     "UI_MAX_FPS": (1, 20),
+    "IMP_FLOAT_PIXELS": (0, 8),
     "DISPLAY_SLEEP_TIMEOUT": (0, 3600),
     "LED_IDLE_BRIGHTNESS": (0, 255),
 }
-BOOL_KEYS = {"ENABLE_TTS", "TTS_THIRD_PERSON", "ENABLE_LED"}
+BOOL_KEYS = {"ENABLE_TTS", "TTS_THIRD_PERSON", "IMP_SHADOW", "ENABLE_LED"}
 ALLOWED_KEYS = TEXT_KEYS | set(NUMERIC_KEYS) | BOOL_KEYS
 
 DEFAULTS = {
@@ -99,10 +100,12 @@ DEFAULTS = {
     "SPEAKER_VOLUME": "55",
     "LCD_BACKLIGHT": "70",
     "UI_MAX_FPS": "8",
+    "IMP_FLOAT_PIXELS": "3",
     "DISPLAY_SLEEP_TIMEOUT": "0",
     "IMP_IDLE_MOOD": "happy",
     "IMP_BODY_COLOR": "yellow",
     "IMP_ACCESSORY_MODE": "random",
+    "IMP_SHADOW": "true",
     "ENABLE_LED": "true",
     "LED_IDLE_BRIGHTNESS": "0",
 }
@@ -283,6 +286,7 @@ def render_page(message: str = "") -> bytes:
     _, values = read_env()
     checked = " checked" if values.get("ENABLE_TTS", "true").lower() == "true" else ""
     third_person_checked = " checked" if values.get("TTS_THIRD_PERSON", "true").lower() == "true" else ""
+    shadow_checked = " checked" if values.get("IMP_SHADOW", "true").lower() == "true" else ""
     led_checked = " checked" if values.get("ENABLE_LED", "true").lower() == "true" else ""
     html = f"""<!doctype html>
 <html lang="en">
@@ -358,6 +362,8 @@ def render_page(message: str = "") -> bytes:
       <div class="grid">
         {input_range("LCD_BACKLIGHT", values, "Backlight", "0", "100", "1")}
         {input_range("UI_MAX_FPS", values, "Animation FPS", "1", "20", "1")}
+        {input_range("IMP_FLOAT_PIXELS", values, "Float pixels", "0", "8", "1")}
+        <label class="toggle"><input type="checkbox" name="IMP_SHADOW"{shadow_checked}> Ground shadow</label>
         {input_text("DISPLAY_SLEEP_TIMEOUT", values, "Sleep timeout seconds", "number")}
         {select_box("IMP_IDLE_MOOD", values, "Idle mood", IDLE_MOODS)}
         {select_box("IMP_BODY_COLOR", values, "Body color", BODY_COLORS)}

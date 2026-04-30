@@ -750,6 +750,14 @@ _BOB_CYCLE = [
 ]
 
 
+def _scaled_bob_px(tick: int) -> int:
+    max_float = max(0, min(8, getattr(config, "IMP_FLOAT_PIXELS", 3)))
+    if max_float == 0:
+        return 0
+    raw = _BOB_CYCLE[tick % len(_BOB_CYCLE)]
+    return int(round(raw / 6 * max_float))
+
+
 class Display:
     def __init__(self, backlight=70):
         self.board = WhisPlayBoard()
@@ -971,12 +979,31 @@ class Display:
     def _sprite_y_offset(self, sprite: Image.Image) -> int:
         return max(0, int((self._height - sprite.height) / 2))
 
-    def _compose_sprite_frame(self, sprite: Image.Image, y_shift: int = 0) -> Image.Image:
+    def _compose_sprite_frame(
+        self,
+        sprite: Image.Image,
+        y_shift: int = 0,
+        shadow: bool = False,
+    ) -> Image.Image:
         if sprite.size == (self._width, self._height) and y_shift == 0:
-            return sprite.copy()
+            img = sprite.copy()
+            if shadow:
+                self._draw_ground_shadow(ImageDraw.Draw(img), self._sprite_y_offset(sprite), y_shift)
+            return img
         img = Image.new("RGB", (self._width, self._height), (0, 0, 0))
+        if shadow:
+            self._draw_ground_shadow(ImageDraw.Draw(img), self._sprite_y_offset(sprite), y_shift)
         img.paste(sprite, (0, self._sprite_y_offset(sprite) - y_shift))
         return img
+
+    def _draw_ground_shadow(self, draw: ImageDraw.ImageDraw, y_offset: int, y_shift: int = 0):
+        base_y = min(self._height - 18, y_offset + 218)
+        width_pad = max(0, y_shift) * 2
+        color = (38, 38, 38)
+        for gx in range(10 - min(2, width_pad), 21 + min(2, width_pad)):
+            _spx(draw, gx, base_y // _SPX, color)
+        for gx in range(12, 19):
+            _spx(draw, gx, base_y // _SPX + 1, (24, 24, 24))
 
     def set_status(
         self,
@@ -1050,7 +1077,7 @@ class Display:
     def set_idle_screen(self):
         """Draw idle screen with the Imp logo, battery, and wifi status."""
         sprite = self._sprite_frames.get(_idle_mood_key(), self._sprite_frames["idle"])
-        img = self._compose_sprite_frame(sprite)
+        img = self._compose_sprite_frame(sprite, shadow=config.IMP_SHADOW)
         draw = ImageDraw.Draw(img)
 
         draw.rectangle((0, 0, self._width, ACCENT_BAR_HEIGHT), fill=(40, 40, 40))
@@ -1142,9 +1169,9 @@ class Display:
             # Gentle bob for idle / done states
             bob_px = 0
             if state in ("idle", "done"):
-                bob_px = _BOB_CYCLE[tick % len(_BOB_CYCLE)]
+                bob_px = _scaled_bob_px(tick)
 
-            img = self._compose_sprite_frame(sprite, bob_px)
+            img = self._compose_sprite_frame(sprite, bob_px, shadow=config.IMP_SHADOW)
 
             draw = ImageDraw.Draw(img)
 
