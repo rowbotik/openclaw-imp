@@ -47,6 +47,8 @@ UI_MAX_FPS = int(os.environ.get("UI_MAX_FPS", "8"))
 DISPLAY_SLEEP_TIMEOUT = float(os.environ.get("DISPLAY_SLEEP_TIMEOUT", "0"))
 IMP_IDLE_MOOD = os.environ.get("IMP_IDLE_MOOD", "happy")
 IMP_BODY_COLOR = os.environ.get("IMP_BODY_COLOR", "yellow")
+ENABLE_LED = os.environ.get("ENABLE_LED", "true").lower() in ("true", "1", "yes")
+LED_IDLE_BRIGHTNESS = int(os.environ.get("LED_IDLE_BRIGHTNESS", "0"))
 
 # Speak the assistant response through the selected TTS provider.
 ENABLE_TTS = os.environ.get("ENABLE_TTS", "true").lower() in ("true", "1", "yes")
@@ -81,6 +83,8 @@ def print_config():
     print(f"LCD_BACKLIGHT           = {LCD_BACKLIGHT}")
     print(f"IMP_IDLE_MOOD           = {IMP_IDLE_MOOD}")
     print(f"IMP_BODY_COLOR          = {IMP_BODY_COLOR}")
+    print(f"ENABLE_LED             = {ENABLE_LED}")
+    print(f"LED_IDLE_BRIGHTNESS    = {LED_IDLE_BRIGHTNESS}")
     print(f"OPENAI_API_KEY set      = {bool(OPENAI_API_KEY)}")
     print(f"OPENCLAW_TOKEN set      = {bool(OPENCLAW_TOKEN)}")
     print(f"ENABLE_TTS              = {ENABLE_TTS}")

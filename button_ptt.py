@@ -1,6 +1,8 @@
 import threading
 from enum import Enum
 
+import config
+
 
 class State(Enum):
     IDLE = "idle"
@@ -12,7 +14,7 @@ class State(Enum):
 
 
 STATE_COLORS = {
-    State.IDLE:          (90, 90, 90),     # visible when idle (was 40 = too dim / looked black)
+    State.IDLE:          (0, 0, 0),
     State.LISTENING:     (0, 80, 255),     # blue
     State.TRANSCRIBING:  (255, 200, 0),    # yellow
     State.THINKING:      (255, 200, 0),    # yellow
@@ -49,14 +51,17 @@ class ButtonPTT:
             self._update_led(new_state)
 
     def _update_led(self, state: State):
-        # Skip backlight for IDLE so main can use display.set_backlight() and screen stays visible
-        if state == State.IDLE:
-            return
-        color = STATE_COLORS.get(state, (40, 40, 40))
+        if not config.ENABLE_LED:
+            color = (0, 0, 0)
+        elif state == State.IDLE:
+            level = max(0, min(255, config.LED_IDLE_BRIGHTNESS))
+            color = (level, level, level)
+        else:
+            color = STATE_COLORS.get(state, (0, 0, 0))
         try:
-            self._board.set_backlight_color(*color)
+            self._board.set_rgb(*color)
         except AttributeError:
-            pass
+            return
 
     def _handle_press(self):
         # Always wake display on any press (so button works even when screen looked black)

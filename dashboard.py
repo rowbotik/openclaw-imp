@@ -54,8 +54,9 @@ NUMERIC_KEYS = {
     "LCD_BACKLIGHT": (0, 100),
     "UI_MAX_FPS": (1, 20),
     "DISPLAY_SLEEP_TIMEOUT": (0, 3600),
+    "LED_IDLE_BRIGHTNESS": (0, 255),
 }
-BOOL_KEYS = {"ENABLE_TTS"}
+BOOL_KEYS = {"ENABLE_TTS", "ENABLE_LED"}
 ALLOWED_KEYS = TEXT_KEYS | set(NUMERIC_KEYS) | BOOL_KEYS
 
 DEFAULTS = {
@@ -80,6 +81,8 @@ DEFAULTS = {
     "DISPLAY_SLEEP_TIMEOUT": "0",
     "IMP_IDLE_MOOD": "happy",
     "IMP_BODY_COLOR": "yellow",
+    "ENABLE_LED": "true",
+    "LED_IDLE_BRIGHTNESS": "0",
 }
 
 
@@ -242,6 +245,7 @@ def textarea(name: str, values: dict[str, str], label: str) -> str:
 def render_page(message: str = "") -> bytes:
     _, values = read_env()
     checked = " checked" if values.get("ENABLE_TTS", "true").lower() == "true" else ""
+    led_checked = " checked" if values.get("ENABLE_LED", "true").lower() == "true" else ""
     html = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -316,6 +320,13 @@ def render_page(message: str = "") -> bytes:
         {select_box("IMP_BODY_COLOR", values, "Body color", BODY_COLORS)}
       </div>
     </section>
+    <section>
+      <h2>LED</h2>
+      <div class="grid">
+        <label class="toggle"><input type="checkbox" name="ENABLE_LED"{led_checked}> Use status LED</label>
+        {input_range("LED_IDLE_BRIGHTNESS", values, "Idle brightness", "0", "255", "1")}
+      </div>
+    </section>
     <section class="actions">
       <button type="submit">Save & Restart Imp</button>
       <button class="secondary" type="submit" formaction="/restart">Restart Only</button>
@@ -347,8 +358,9 @@ class Handler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length", "0"))
         form = parse_qs(self.rfile.read(length).decode(), keep_blank_values=True)
         values = {key: form.get(key, [""])[0] for key in ALLOWED_KEYS}
-        if "ENABLE_TTS" not in form:
-            values["ENABLE_TTS"] = "false"
+        for key in BOOL_KEYS:
+            if key not in form:
+                values[key] = "false"
 
         if self.path == "/save":
             write_env(values)
