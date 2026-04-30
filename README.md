@@ -116,6 +116,29 @@ python3 main.py
 
 Or deploy as a systemd service (see below).
 
+### Add travel Wi-Fi from macOS Keychain
+
+Imp Zero uses NetworkManager on Raspberry Pi OS. From your Mac, you can copy
+selected saved Wi-Fi credentials out of Keychain and install them as
+autoconnect profiles on the Pi:
+
+```bash
+./install_wifi_from_keychain.py "Home SSID" "Barkside SSID"
+```
+
+The script only reads the SSIDs you name. macOS may prompt for Keychain access.
+Passwords are sent over SSH to `pi@imp-zero.local`, applied with `nmcli`, and
+are not printed or committed. Use `--connect` to switch to the first supplied
+network immediately:
+
+```bash
+./install_wifi_from_keychain.py --connect "Barkside SSID"
+```
+
+Preload travel networks while Imp Zero is still on your home LAN. For unknown
+networks, add a fallback setup hotspot later so the dashboard remains reachable
+without any saved Wi-Fi.
+
 ## Configuration
 
 All settings are configured via environment variables (loaded from `.env`):
@@ -218,6 +241,7 @@ speech_text.py        — Markdown-to-speech cleanup for streamed TTS
 dashboard.py          — LAN settings dashboard
 record_audio.py       — Audio recording via ALSA arecord
 button_ptt.py         — Push-to-talk button state machine
+install_wifi_from_keychain.py — Mac helper to install selected Wi-Fi profiles
 config.py             — Centralized configuration from .env
 sync.sh               — Deploy script (rsync + systemd restart)
 imp-zero-check.sh     — Pi-side hardware/config validation summary
