@@ -816,6 +816,7 @@ class Display:
     def sleep(self):
         if self._sleeping:
             return
+        self._stop_animations()
         self._sleeping = True
         self.clear()
         self.board.set_backlight(0)
@@ -1180,10 +1181,11 @@ class Display:
             if accessory != "none":
                 sprite = _apply_accessory(sprite, accessory)
 
-            # Gentle bob for idle / done states
-            bob_px = 0
-            if state in ("idle", "done"):
-                bob_px = _scaled_bob_px(tick)
+            # Keep the Imp visibly alive. Idle/done float fully; active states
+            # get a smaller motion so the status still feels stable.
+            bob_px = _scaled_bob_px(tick)
+            if state in ("listening", "thinking", "talking"):
+                bob_px = max(0, int(round(bob_px * 0.5)))
 
             img = self._compose_sprite_frame(sprite, bob_px, shadow=config.IMP_SHADOW)
 

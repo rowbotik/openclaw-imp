@@ -247,7 +247,7 @@ class Assistant:
         self.ptt.state = State.IDLE
         self.display.set_backlight(config.LCD_BACKLIGHT)
         self.display.stop_character()
-        self.display.set_idle_screen()
+        self.display.start_character("idle", self._tts)
 
     def _show_error(self, msg: str):
         self.ptt.state = State.ERROR
@@ -277,7 +277,8 @@ class Assistant:
                     and not worker_busy
                     and time.monotonic() - self._last_idle_refresh > 30
                 ):
-                    self.display.set_idle_screen()
+                    # The idle character loop already redraws battery/wifi.
+                    # Keep this timestamp fresh without interrupting the bob.
                     self._last_idle_refresh = time.monotonic()
 
                 # Sleep display after inactivity
