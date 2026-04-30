@@ -74,9 +74,10 @@ def speechify_markdown(text: str, *, table_notice: bool = True) -> tuple[str, bo
 class SpeechChunker:
     """Incrementally batch streamed Markdown into safe TTS chunks."""
 
-    def __init__(self):
+    def __init__(self, third_person: bool = False):
         self._buffer = ""
         self._table_notice_used = False
+        self._third_person = third_person
 
     def append(self, text: str) -> list[str]:
         self._buffer += text
@@ -109,6 +110,8 @@ class SpeechChunker:
         )
         if removed_table:
             self._table_notice_used = True
+        if self._third_person:
+            spoken = daemon_says(spoken)
         return spoken
 
     def _next_split(self) -> int | None:
@@ -158,3 +161,43 @@ class SpeechChunker:
             if blank >= 0:
                 return blank + 2
         return None
+
+
+def daemon_says(text: str) -> str:
+    """Wrap a spoken chunk so Imp talks about Daemon in third person."""
+    text = re.sub(r"\s+", " ", (text or "").strip())
+    if not text:
+        return ""
+    if re.match(r"(?i)^daemon\s+(says|said|thinks|will|can|has|is)\b", text):
+        return text
+
+    rewritten = _rewrite_first_person(text)
+    first_word = rewritten.split(" ", 1)[0].lower().strip(".,:;!?")
+    if first_word in {"he", "he'll", "he'd", "he's", "his", "him", "that"}:
+        return f"Daemon says {rewritten[0].lower()}{rewritten[1:]}"
+    return f"Daemon says: {rewritten}"
+
+
+def _rewrite_first_person(text: str) -> str:
+    replacements = [
+        (r"(?i)^i['’]ll\b", "he'll"),
+        (r"(?i)^i will\b", "he will"),
+        (r"(?i)^i can\b", "he can"),
+        (r"(?i)^i am\b", "he is"),
+        (r"(?i)^i['’]m\b", "he is"),
+        (r"(?i)^i have\b", "he has"),
+        (r"(?i)^i['’]ve\b", "he has"),
+        (r"(?i)^i need\b", "he needs"),
+        (r"(?i)^i think\b", "he thinks"),
+        (r"(?i)^i recommend\b", "he recommends"),
+        (r"(?i)^i suggest\b", "he suggests"),
+        (r"(?i)^i see\b", "he sees"),
+        (r"(?i)^i\b", "he"),
+        (r"(?i)\bmy\b", "his"),
+        (r"(?i)\bmine\b", "his"),
+        (r"(?i)\bme\b", "him"),
+    ]
+    out = text
+    for pattern, repl in replacements:
+        out = re.sub(pattern, repl, out)
+    return out

@@ -180,7 +180,7 @@ class Assistant:
         self.ptt.state = State.STREAMING
         first_token = True
         full_response = ""
-        speech_chunker = SpeechChunker()
+        speech_chunker = SpeechChunker(third_person=config.TTS_THIRD_PERSON)
         stream_t0 = time.monotonic()
 
         for delta in stream_response(transcript, history=self._conversation_history):

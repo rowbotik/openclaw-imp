@@ -126,8 +126,10 @@ All settings are configured via environment variables (loaded from `.env`):
 | `OPENCLAW_TOKEN` | _(required)_ | Auth token for the OpenClaw gateway |
 | `OPENCLAW_BASE_URL` | `http://localhost:18789` | Remote OpenClaw gateway URL; for Tailscale Serve use the HTTPS serve URL |
 | `OPENCLAW_MODEL` | `openclaw/daemon` | OpenClaw agent target for Imp Zero |
+| `OPENCLAW_RESPONSE_STYLE` | third-person Daemon style | Per-request instruction for Daemon's reply voice |
 | `OPENAI_TRANSCRIBE_MODEL` | `gpt-4o-mini-transcribe` | Speech-to-text model |
 | `ENABLE_TTS` | `true` | Speak responses aloud |
+| `TTS_THIRD_PERSON` | `true` | Wrap spoken chunks as Daemon's messenger |
 | `TTS_PROVIDER` | `openai` | `openai` or `elevenlabs` |
 | `OPENAI_TTS_MODEL` | `gpt-4o-mini-tts-2025-12-15` | OpenAI TTS model |
 | `OPENAI_TTS_VOICE` | `coral` | OpenAI TTS voice |
@@ -175,7 +177,8 @@ This rsyncs the project to `pi@imp-zero.local:/home/pi/openclaw-imp/`, installs 
 Open `http://imp-zero.local:8080` for the LAN dashboard. It can change TTS,
 speaker volume, backlight, animation FPS, sleep timeout, idle mood, and body
 color. It edits only allowlisted non-secret `.env` keys, then restarts
-`openclaw-imp.service` when settings are saved.
+`openclaw-imp.service` when settings are saved. Use **Reset Unsaved** or
+**Reload Current** to discard page edits that have not been saved.
 
 ```bash
 # On the Pi:

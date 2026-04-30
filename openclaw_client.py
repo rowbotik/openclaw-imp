@@ -47,9 +47,20 @@ def stream_response(
             {"type": "message", "role": m["role"], "content": m["content"]}
             for m in history
         ]
+        if config.OPENCLAW_RESPONSE_STYLE:
+            input_val.append({
+                "type": "message",
+                "role": "user",
+                "content": f"Style instruction for this reply: {config.OPENCLAW_RESPONSE_STYLE}",
+            })
         input_val.append({"type": "message", "role": "user", "content": user_text})
     else:
-        input_val = user_text
+        input_val = (
+            f"Style instruction for this reply: {config.OPENCLAW_RESPONSE_STYLE}\n\n"
+            f"User said: {user_text}"
+            if config.OPENCLAW_RESPONSE_STYLE
+            else user_text
+        )
 
     body = {
         "model": config.OPENCLAW_MODEL,

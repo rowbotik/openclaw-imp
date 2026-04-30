@@ -33,6 +33,12 @@ ELEVENLABS_SIMILARITY_BOOST = os.environ.get("ELEVENLABS_SIMILARITY_BOOST", "")
 OPENCLAW_BASE_URL = os.environ.get("OPENCLAW_BASE_URL", "http://localhost:18789")
 OPENCLAW_TOKEN = os.environ.get("OPENCLAW_TOKEN", "")
 OPENCLAW_MODEL = os.environ.get("OPENCLAW_MODEL", "openclaw/daemon")
+OPENCLAW_RESPONSE_STYLE = os.environ.get(
+    "OPENCLAW_RESPONSE_STYLE",
+    "Imp Zero is speaking between the user and Daemon. Reply in third person as "
+    "Daemon, for example: \"Daemon says he'll take care of that.\" Keep replies "
+    "short and spoken-friendly.",
+)
 
 AUDIO_DEVICE = os.environ.get("AUDIO_DEVICE", "plughw:1,0")
 AUDIO_OUTPUT_DEVICE = os.environ.get("AUDIO_OUTPUT_DEVICE", "plughw:1,0")
@@ -52,6 +58,7 @@ LED_IDLE_BRIGHTNESS = int(os.environ.get("LED_IDLE_BRIGHTNESS", "0"))
 
 # Speak the assistant response through the selected TTS provider.
 ENABLE_TTS = os.environ.get("ENABLE_TTS", "true").lower() in ("true", "1", "yes")
+TTS_THIRD_PERSON = os.environ.get("TTS_THIRD_PERSON", "true").lower() in ("true", "1", "yes")
 
 # Number of past exchanges (user+assistant pairs) to keep for conversation context
 CONVERSATION_HISTORY_LENGTH = int(os.environ.get("CONVERSATION_HISTORY_LENGTH", "5"))
@@ -75,6 +82,7 @@ def print_config():
     print(f"ELEVENLABS_VOICE_ID set = {bool(ELEVENLABS_VOICE_ID)}")
     print(f"OPENCLAW_BASE_URL       = {OPENCLAW_BASE_URL}")
     print(f"OPENCLAW_MODEL          = {OPENCLAW_MODEL}")
+    print(f"OPENCLAW_RESPONSE_STYLE = {OPENCLAW_RESPONSE_STYLE[:60]}...")
     print(f"AUDIO_DEVICE            = {AUDIO_DEVICE}")
     print(f"AUDIO_OUTPUT_DEVICE     = {AUDIO_OUTPUT_DEVICE}")
     print(f"SPEAKER_VOLUME          = {SPEAKER_VOLUME}")
@@ -88,5 +96,6 @@ def print_config():
     print(f"OPENAI_API_KEY set      = {bool(OPENAI_API_KEY)}")
     print(f"OPENCLAW_TOKEN set      = {bool(OPENCLAW_TOKEN)}")
     print(f"ENABLE_TTS              = {ENABLE_TTS}")
+    print(f"TTS_THIRD_PERSON        = {TTS_THIRD_PERSON}")
     print(f"CONVERSATION_HISTORY    = {CONVERSATION_HISTORY_LENGTH}")
     print(f"SILENCE_RMS_THRESHOLD   = {SILENCE_RMS_THRESHOLD}")

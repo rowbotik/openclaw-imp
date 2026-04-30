@@ -36,6 +36,7 @@ TTS_PROVIDERS = ["openai", "elevenlabs"]
 
 TEXT_KEYS = {
     "TTS_PROVIDER",
+    "OPENCLAW_RESPONSE_STYLE",
     "OPENAI_TTS_MODEL",
     "OPENAI_TTS_VOICE",
     "OPENAI_TTS_INSTRUCTIONS",
@@ -56,11 +57,17 @@ NUMERIC_KEYS = {
     "DISPLAY_SLEEP_TIMEOUT": (0, 3600),
     "LED_IDLE_BRIGHTNESS": (0, 255),
 }
-BOOL_KEYS = {"ENABLE_TTS", "ENABLE_LED"}
+BOOL_KEYS = {"ENABLE_TTS", "TTS_THIRD_PERSON", "ENABLE_LED"}
 ALLOWED_KEYS = TEXT_KEYS | set(NUMERIC_KEYS) | BOOL_KEYS
 
 DEFAULTS = {
     "ENABLE_TTS": "true",
+    "TTS_THIRD_PERSON": "true",
+    "OPENCLAW_RESPONSE_STYLE": (
+        "Imp Zero is speaking between the user and Daemon. Reply in third "
+        "person as Daemon, for example: Daemon says he will take care of "
+        "that. Keep replies short and spoken-friendly."
+    ),
     "TTS_PROVIDER": "openai",
     "OPENAI_TTS_MODEL": "gpt-4o-mini-tts-2025-12-15",
     "OPENAI_TTS_VOICE": "fable",
@@ -245,6 +252,7 @@ def textarea(name: str, values: dict[str, str], label: str) -> str:
 def render_page(message: str = "") -> bytes:
     _, values = read_env()
     checked = " checked" if values.get("ENABLE_TTS", "true").lower() == "true" else ""
+    third_person_checked = " checked" if values.get("TTS_THIRD_PERSON", "true").lower() == "true" else ""
     led_checked = " checked" if values.get("ENABLE_LED", "true").lower() == "true" else ""
     html = f"""<!doctype html>
 <html lang="en">
@@ -291,6 +299,7 @@ def render_page(message: str = "") -> bytes:
       <h2>Speech</h2>
       <div class="grid">
         <label class="toggle"><input type="checkbox" name="ENABLE_TTS"{checked}> Speak replies</label>
+        <label class="toggle"><input type="checkbox" name="TTS_THIRD_PERSON"{third_person_checked}> Speak as Daemon's messenger</label>
         {select_box("TTS_PROVIDER", values, "Provider", TTS_PROVIDERS)}
         {select_box("OPENAI_TTS_VOICE", values, "OpenAI voice", OPENAI_VOICES)}
         {input_text("OPENAI_TTS_MODEL", values, "OpenAI model")}
@@ -299,6 +308,7 @@ def render_page(message: str = "") -> bytes:
         {input_text("ELEVENLABS_VOICE_ID", values, "ElevenLabs voice ID")}
         {input_text("ELEVENLABS_MODEL_ID", values, "ElevenLabs model")}
         {input_text("ELEVENLABS_OUTPUT_FORMAT", values, "ElevenLabs output")}
+        {textarea("OPENCLAW_RESPONSE_STYLE", values, "Daemon style instruction")}
         {textarea("OPENAI_TTS_INSTRUCTIONS", values, "Voice instructions")}
       </div>
     </section>
@@ -330,6 +340,8 @@ def render_page(message: str = "") -> bytes:
     <section class="actions">
       <button type="submit">Save & Restart Imp</button>
       <button class="secondary" type="submit" formaction="/restart">Restart Only</button>
+      <button class="secondary" type="reset">Reset Unsaved</button>
+      <button class="secondary" type="button" onclick="window.location.reload()">Reload Current</button>
       <input class="sample" name="TEST_PHRASE" value="Imp voice check. Fable mode.">
       <button class="secondary" type="submit" formaction="/test-tts">Test Speak</button>
     </section>

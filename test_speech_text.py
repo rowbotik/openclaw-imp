@@ -1,6 +1,6 @@
 import unittest
 
-from speech_text import SpeechChunker, speechify_markdown
+from speech_text import SpeechChunker, daemon_says, speechify_markdown
 
 
 class SpeechTextTests(unittest.TestCase):
@@ -41,6 +41,25 @@ Pick one."""
         second = chunker.append("| C | D |\n| --- | --- |\n| three | four |\n\n")
         self.assertIn("I put a table on the screen.", " ".join(first))
         self.assertNotIn("I put a table on the screen.", " ".join(second))
+
+    def test_daemon_says_rewrites_common_first_person(self):
+        self.assertEqual(
+            daemon_says("I'll take care of that."),
+            "Daemon says he'll take care of that.",
+        )
+        self.assertEqual(
+            daemon_says("I can ask Doug."),
+            "Daemon says he can ask Doug.",
+        )
+        self.assertEqual(
+            daemon_says("Daemon says he already did it."),
+            "Daemon says he already did it.",
+        )
+
+    def test_chunker_can_wrap_spoken_chunks(self):
+        chunker = SpeechChunker(third_person=True)
+        out = chunker.append("I'll take care of that. It is queued. ")
+        self.assertEqual(out, ["Daemon says he'll take care of that. It is queued."])
 
 
 if __name__ == "__main__":
