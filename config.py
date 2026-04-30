@@ -37,6 +37,7 @@ OPENCLAW_MODEL = os.environ.get("OPENCLAW_MODEL", "openclaw/daemon")
 AUDIO_DEVICE = os.environ.get("AUDIO_DEVICE", "plughw:1,0")
 AUDIO_OUTPUT_DEVICE = os.environ.get("AUDIO_OUTPUT_DEVICE", "plughw:1,0")
 AUDIO_OUTPUT_CARD = int(os.environ.get("AUDIO_OUTPUT_CARD", "1"))  # ALSA card for amixer
+SPEAKER_VOLUME = int(os.environ.get("SPEAKER_VOLUME", "100"))
 AUDIO_SAMPLE_RATE = int(os.environ.get("AUDIO_SAMPLE_RATE", "16000"))
 
 DRY_RUN = not OPENAI_API_KEY
@@ -44,6 +45,8 @@ DRY_RUN = not OPENAI_API_KEY
 LCD_BACKLIGHT = int(os.environ.get("LCD_BACKLIGHT", "70"))
 UI_MAX_FPS = int(os.environ.get("UI_MAX_FPS", "4"))
 DISPLAY_SLEEP_TIMEOUT = float(os.environ.get("DISPLAY_SLEEP_TIMEOUT", "0"))
+IMP_IDLE_MOOD = os.environ.get("IMP_IDLE_MOOD", "happy")
+IMP_BODY_COLOR = os.environ.get("IMP_BODY_COLOR", "yellow")
 
 # Speak the assistant response through the selected TTS provider.
 ENABLE_TTS = os.environ.get("ENABLE_TTS", "true").lower() in ("true", "1", "yes")
@@ -72,9 +75,12 @@ def print_config():
     print(f"OPENCLAW_MODEL          = {OPENCLAW_MODEL}")
     print(f"AUDIO_DEVICE            = {AUDIO_DEVICE}")
     print(f"AUDIO_OUTPUT_DEVICE     = {AUDIO_OUTPUT_DEVICE}")
+    print(f"SPEAKER_VOLUME          = {SPEAKER_VOLUME}")
     print(f"AUDIO_SAMPLE_RATE       = {AUDIO_SAMPLE_RATE}")
     print(f"DRY_RUN                 = {DRY_RUN}")
     print(f"LCD_BACKLIGHT           = {LCD_BACKLIGHT}")
+    print(f"IMP_IDLE_MOOD           = {IMP_IDLE_MOOD}")
+    print(f"IMP_BODY_COLOR          = {IMP_BODY_COLOR}")
     print(f"OPENAI_API_KEY set      = {bool(OPENAI_API_KEY)}")
     print(f"OPENCLAW_TOKEN set      = {bool(OPENCLAW_TOKEN)}")
     print(f"ENABLE_TTS              = {ENABLE_TTS}")

@@ -1,0 +1,1 @@
+pi ALL=(root) NOPASSWD: /usr/bin/systemctl restart openclaw-imp.service

@@ -226,19 +226,63 @@ def _read_battery() -> tuple[int | None, str | None]:
 
 _SPX = 8  # each "pixel" is an 8×8 block → 30×30 logical grid on 240×240
 
-_C_BODY = (255, 207, 31)
-_C_HIGHLIGHT = (255, 232, 78)
-_C_OUTLINE = (126, 91, 0)
-_C_FOOT = (230, 171, 0)
+_BODY_PALETTES = {
+    "yellow": {
+        "body": (255, 207, 31),
+        "highlight": (255, 232, 78),
+        "outline": (126, 91, 0),
+        "foot": (230, 171, 0),
+        "cheek": (255, 177, 38),
+        "zap": (255, 221, 48),
+    },
+    "cream": {
+        "body": (255, 248, 220),
+        "highlight": (255, 255, 244),
+        "outline": (136, 112, 58),
+        "foot": (232, 212, 150),
+        "cheek": (255, 180, 132),
+        "zap": (255, 232, 78),
+    },
+    "red": {
+        "body": (255, 88, 93),
+        "highlight": (255, 146, 150),
+        "outline": (112, 24, 28),
+        "foot": (207, 54, 59),
+        "cheek": (255, 177, 38),
+        "zap": (255, 221, 48),
+    },
+    "blue": {
+        "body": (74, 171, 255),
+        "highlight": (143, 210, 255),
+        "outline": (16, 74, 136),
+        "foot": (45, 129, 220),
+        "cheek": (255, 177, 38),
+        "zap": (255, 221, 48),
+    },
+    "green": {
+        "body": (91, 211, 54),
+        "highlight": (158, 239, 115),
+        "outline": (32, 96, 20),
+        "foot": (63, 169, 39),
+        "cheek": (255, 177, 38),
+        "zap": (255, 221, 48),
+    },
+}
+_PALETTE = _BODY_PALETTES.get(config.IMP_BODY_COLOR, _BODY_PALETTES["yellow"])
+
+_C_BODY = _PALETTE["body"]
+_C_HIGHLIGHT = _PALETTE["highlight"]
+_C_OUTLINE = _PALETTE["outline"]
+_C_FOOT = _PALETTE["foot"]
 _C_EYE = (0, 0, 0)
 _C_SPARKLE = (255, 255, 255)
-_C_CHEEK = (255, 177, 38)
+_C_CHEEK = _PALETTE["cheek"]
 _C_MOUTH_INT = (0, 0, 0)
 _C_MOUTH_EDGE = (0, 0, 0)
 _C_TONGUE = (255, 88, 93)
 _C_HORN = (255, 255, 244)
 _C_HORN_SHADOW = (223, 213, 178)
-_C_ZAP = (255, 221, 48)
+_C_ZAP = _PALETTE["zap"]
 
 # Round body
 _MAIN_CELLS: set[tuple[int, int]] = set()
@@ -558,6 +602,15 @@ def _generate_sprite_frames() -> dict[str, Image.Image]:
     return frames
 
 
+def _idle_mood_key() -> str:
+    allowed = {
+        "idle", "happy", "excited", "proud", "curious", "sleepy", "love",
+        "sad", "angry", "alert", "connected", "low_power", "error",
+    }
+    mood = config.IMP_IDLE_MOOD.lower().strip()
+    return mood if mood in allowed else "happy"
+
+
 # Idle / done bob cycle (pixel offsets for gentle breathing)
 _BOB_CYCLE = [0, 0, 0, 0, 1, 2, 3, 4, 4, 4, 3, 2, 1, 0, 0, 0]
 
@@ -828,7 +881,7 @@ class Display:
 
     def set_idle_screen(self):
         """Draw idle screen with the Imp logo, battery, and wifi status."""
-        img = self._sprite_frames["idle"].copy()
+        img = self._sprite_frames.get(_idle_mood_key(), self._sprite_frames["idle"]).copy()
         draw = ImageDraw.Draw(img)
 
         draw.rectangle((0, 0, self._width, ACCENT_BAR_HEIGHT), fill=(40, 40, 40))
@@ -900,7 +953,7 @@ class Display:
             elif state == "done":
                 key = "happy"
             else:
-                key = "idle"
+                key = _idle_mood_key()
 
             # Blink every ~4 s — skip for listening (attentive) and done (happy eyes)
             if (tick % 40) in (0, 1) and state not in ("listening", "done"):

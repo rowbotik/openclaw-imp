@@ -135,10 +135,14 @@ All settings are configured via environment variables (loaded from `.env`):
 | `ELEVENLABS_OUTPUT_FORMAT` | `pcm_24000` | ElevenLabs output; PCM is wrapped into WAV for local playback |
 | `AUDIO_DEVICE` | `plughw:1,0` | ALSA input device |
 | `AUDIO_OUTPUT_DEVICE` | `plughw:1,0` | ALSA output device |
+| `AUDIO_OUTPUT_CARD` | `1` | ALSA card used for speaker volume controls |
+| `SPEAKER_VOLUME` | `100` | ALSA speaker volume set before TTS playback |
 | `AUDIO_SAMPLE_RATE` | `16000` | Recording sample rate |
 | `LCD_BACKLIGHT` | `70` | Backlight brightness (0–100) |
 | `UI_MAX_FPS` | `3` | Max display refresh rate; intentionally low for chunky Gigapet-style animation |
 | `DISPLAY_SLEEP_TIMEOUT` | `0` | Seconds before blanking the display while idle; `0` keeps the Imp visible |
+| `IMP_IDLE_MOOD` | `happy` | Idle sprite mood shown on the LCD |
+| `IMP_BODY_COLOR` | `yellow` | Imp body palette: `yellow`, `cream`, `red`, `blue`, or `green` |
 | `CONVERSATION_HISTORY_LENGTH` | `5` | Past exchanges to keep for context |
 | `SILENCE_RMS_THRESHOLD` | `200` | Audio RMS below this is skipped |
 
@@ -160,7 +164,12 @@ The included `sync.sh` script deploys to Imp Zero and sets up the service:
 ./sync.sh
 ```
 
-This rsyncs the project to `pi@imp-zero.local:/home/pi/openclaw-imp/`, installs the systemd unit, and restarts the service. It intentionally does not sync `.env`; keep the real keys on the Pi. Logs are available via:
+This rsyncs the project to `pi@imp-zero.local:/home/pi/openclaw-imp/`, installs the systemd units, and restarts the services. It intentionally does not sync `.env`; keep the real keys on the Pi. Logs are available via:
+
+Open `http://imp-zero.local:8080` for the LAN dashboard. It can change TTS,
+speaker volume, backlight, animation FPS, sleep timeout, idle mood, and body
+color. It edits only allowlisted non-secret `.env` keys, then restarts
+`openclaw-imp.service` when settings are saved.
 
 ```bash
 # On the Pi:
@@ -187,6 +196,7 @@ display.py            — LCD rendering (status, responses, idle clock, spinner)
 openclaw_client.py    — Streaming HTTP client for the remote OpenClaw gateway
 transcribe_openai.py  — Speech-to-text via OpenAI API
 tts_openai.py         — Text-to-speech via OpenAI or ElevenLabs + ALSA playback
+dashboard.py          — LAN settings dashboard
 record_audio.py       — Audio recording via ALSA arecord
 button_ptt.py         — Push-to-talk button state machine
 config.py             — Centralized configuration from .env

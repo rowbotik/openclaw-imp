@@ -20,9 +20,16 @@ ssh "${PI_USER}@${PI_HOST}" "
     exit 2
   fi
   sudo cp '${REMOTE_DIR}/openclaw-imp.service' /etc/systemd/system/ &&
+  sudo cp '${REMOTE_DIR}/openclaw-imp-dashboard.service' /etc/systemd/system/ &&
+  sudo cp '${REMOTE_DIR}/openclaw-imp-dashboard.sudoers' /etc/sudoers.d/openclaw-imp-dashboard &&
+  sudo chmod 440 /etc/sudoers.d/openclaw-imp-dashboard &&
+  sudo visudo -cf /etc/sudoers.d/openclaw-imp-dashboard &&
   sudo systemctl daemon-reload &&
   sudo systemctl enable '${SERVICE_NAME}' &&
+  sudo systemctl enable openclaw-imp-dashboard &&
   sudo systemctl restart '${SERVICE_NAME}' &&
+  sudo systemctl restart openclaw-imp-dashboard &&
   sleep 2 &&
-  sudo journalctl -u '${SERVICE_NAME}' -n 30 --no-pager
+  sudo journalctl -u '${SERVICE_NAME}' -n 30 --no-pager &&
+  sudo journalctl -u openclaw-imp-dashboard -n 20 --no-pager
 "
