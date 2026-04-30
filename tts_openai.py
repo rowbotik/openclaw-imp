@@ -1,4 +1,8 @@
-"""OpenAI TTS playback with pre-fetching for gapless sentence transitions."""
+"""TTS playback with pre-fetching for gapless sentence transitions.
+
+OpenAI is the default provider. Set TTS_PROVIDER=elevenlabs to use
+ElevenLabs while keeping the same playback and mouth-animation pipeline.
+"""
 
 import math
 import queue
@@ -78,9 +82,15 @@ class TTSPlayer:
 
     def submit(self, text: str) -> None:
         t = (text or "").strip()
-        if not t or config.DRY_RUN:
+        if not t or self._tts_unavailable():
             return
         self._submit_q.put(t)
+
+    def _tts_unavailable(self) -> bool:
+        provider = getattr(config, "TTS_PROVIDER", "openai")
+        if provider == "elevenlabs":
+            return not config.ELEVENLABS_API_KEY or not config.ELEVENLABS_VOICE_ID
+        return not config.OPENAI_API_KEY
 
     def flush(self) -> None:
         """Block until all queued sentences have been played."""
@@ -133,6 +143,11 @@ class TTSPlayer:
                 print(f"[tts] skipping sentence (fetch failed): {text[:40]}")
 
     def _fetch_wav(self, text: str) -> bytes | None:
+        if getattr(config, "TTS_PROVIDER", "openai") == "elevenlabs":
+            return self._fetch_elevenlabs_wav(text)
+        return self._fetch_openai_wav(text)
+
+    def _fetch_openai_wav(self, text: str) -> bytes | None:
         url = "https://api.openai.com/v1/audio/speech"
         headers = {
             "Authorization": f"Bearer {config.OPENAI_API_KEY}",
@@ -157,6 +172,67 @@ class TTSPlayer:
             return None
 
         wav_data = b"".join(resp.iter_content(chunk_size=4096))
+
+        gain_db = config.OPENAI_TTS_GAIN_DB
+        if gain_db > 0:
+            try:
+                r = subprocess.run(
+                    ["sox", "-t", "wav", "-", "-t", "wav", "-", "gain", str(gain_db)],
+                    input=wav_data, capture_output=True, timeout=30, check=False,
+                )
+                if r.returncode == 0 and r.stdout:
+                    wav_data = r.stdout
+            except (FileNotFoundError, subprocess.TimeoutExpired):
+                pass
+        return wav_data
+
+    def _fetch_elevenlabs_wav(self, text: str) -> bytes | None:
+        output_format = config.ELEVENLABS_OUTPUT_FORMAT
+        params = {"output_format": output_format}
+        if config.ELEVENLABS_OPTIMIZE_STREAMING_LATENCY:
+            params["optimize_streaming_latency"] = config.ELEVENLABS_OPTIMIZE_STREAMING_LATENCY
+
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{config.ELEVENLABS_VOICE_ID}"
+        headers = {
+            "xi-api-key": config.ELEVENLABS_API_KEY,
+            "Content-Type": "application/json",
+        }
+        payload: dict[str, object] = {
+            "text": text,
+            "model_id": config.ELEVENLABS_MODEL_ID,
+        }
+        voice_settings: dict[str, float] = {}
+        if config.ELEVENLABS_STABILITY:
+            voice_settings["stability"] = float(config.ELEVENLABS_STABILITY)
+        if config.ELEVENLABS_SIMILARITY_BOOST:
+            voice_settings["similarity_boost"] = float(config.ELEVENLABS_SIMILARITY_BOOST)
+        if voice_settings:
+            payload["voice_settings"] = voice_settings
+
+        try:
+            resp = requests.post(
+                url,
+                params=params,
+                json=payload,
+                headers=headers,
+                stream=True,
+                timeout=30,
+            )
+        except Exception as e:
+            print(f"[tts] ElevenLabs request failed: {e}")
+            return None
+        if resp.status_code != 200:
+            print(f"[tts] ElevenLabs API error {resp.status_code}: {resp.text[:200]}")
+            return None
+
+        audio_data = b"".join(resp.iter_content(chunk_size=4096))
+        if output_format.startswith("pcm_"):
+            sample_rate = _sample_rate_from_elevenlabs_format(output_format)
+            wav_data = _pcm16_to_wav(audio_data, sample_rate)
+        else:
+            # Non-PCM formats may require extra players/codecs. Prefer pcm_24000
+            # for Imp Zero so aplay can consume a normal WAV stream.
+            wav_data = audio_data
 
         gain_db = config.OPENAI_TTS_GAIN_DB
         if gain_db > 0:
@@ -284,3 +360,37 @@ def _analyze_mouth(wav_data: bytes) -> list[int]:
             shapes.append(_rms_to_shape(rms))
 
     return shapes
+
+
+def _sample_rate_from_elevenlabs_format(output_format: str) -> int:
+    try:
+        return int(output_format.split("_", 1)[1])
+    except (IndexError, ValueError):
+        return 24000
+
+
+def _pcm16_to_wav(pcm_data: bytes, sample_rate: int) -> bytes:
+    """Wrap raw mono PCM S16LE bytes in a WAV container for aplay/analyzer."""
+    channels = 1
+    bits_per_sample = 16
+    byte_rate = sample_rate * channels * bits_per_sample // 8
+    block_align = channels * bits_per_sample // 8
+    data_size = len(pcm_data)
+    riff_size = 36 + data_size
+    header = struct.pack(
+        "<4sI4s4sIHHIIHH4sI",
+        b"RIFF",
+        riff_size,
+        b"WAVE",
+        b"fmt ",
+        16,
+        1,
+        channels,
+        sample_rate,
+        byte_rate,
+        block_align,
+        bits_per_sample,
+        b"data",
+        data_size,
+    )
+    return header + pcm_data

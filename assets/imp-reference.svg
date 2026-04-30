@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 280" shape-rendering="crispEdges">
+  <rect width="240" height="280" fill="#000"/>
+  <g transform="translate(0,0) scale(8)">
+    <path fill="#fff7dc" d="M9 3h2v2h1v1h-2V5H9zm10 0h2v2h-1v1h-2V5h1z"/>
+    <path fill="#ffcf1f" d="M14 4h2v1h1v1h1v1h2v1h2v1h1v4h2v3h-1v1h-2v3h-1v1h-2v1h-8v-1H9v-1H8v-3H6v-1H5v-3h2V9h1V8h2V7h2V6h1V5h1z"/>
+    <path fill="#ffe84e" d="M11 7h5v1h-2v1h-3z"/>
+    <path fill="#000" d="M13 8h4v1h1v1h1v4h-1v1h-1v1h-4v-1h-1v-1h-1v-4h1V9h1z"/>
+    <path fill="#fff" d="M12 8h2v1h1v2h-2v-1h-1z"/>
+    <path fill="#ffb126" d="M8 13h2v2H8zm12 0h2v2h-2z"/>
+    <path fill="#000" d="M13 17h4v1h1v2h-1v1h-4v-1h-1v-2h1z"/>
+    <path fill="#ff585d" d="M14 19h3v1h-3z"/>
+    <path fill="#ffdd30" d="M4 10h2v1h1v1H5v-1H4zm-1 3h2v1h1v1H4v-1H3zm21-3h2v1h-1v1h-2v-1h1zm1 3h2v1h-1v1h-2v-1h1z"/>
+  </g>
+  <text x="120" y="250" text-anchor="middle" font-family="monospace" font-size="52" font-weight="700" fill="#fff">Imp</text>
+</svg>

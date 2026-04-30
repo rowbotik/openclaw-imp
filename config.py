@@ -19,13 +19,23 @@ OPENAI_TTS_INSTRUCTIONS = os.environ.get(
     "Use natural breathing and smooth pacing — never robotic or monotone. "
     "Let sentences flow into each other without awkward pauses.",
 )
+TTS_PROVIDER = os.environ.get("TTS_PROVIDER", "openai").lower()
+ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
+ELEVENLABS_VOICE_ID = os.environ.get("ELEVENLABS_VOICE_ID", "")
+ELEVENLABS_MODEL_ID = os.environ.get("ELEVENLABS_MODEL_ID", "eleven_flash_v2_5")
+ELEVENLABS_OUTPUT_FORMAT = os.environ.get("ELEVENLABS_OUTPUT_FORMAT", "pcm_24000")
+ELEVENLABS_OPTIMIZE_STREAMING_LATENCY = os.environ.get(
+    "ELEVENLABS_OPTIMIZE_STREAMING_LATENCY", "3"
+)
+ELEVENLABS_STABILITY = os.environ.get("ELEVENLABS_STABILITY", "")
+ELEVENLABS_SIMILARITY_BOOST = os.environ.get("ELEVENLABS_SIMILARITY_BOOST", "")
 
 OPENCLAW_BASE_URL = os.environ.get("OPENCLAW_BASE_URL", "http://localhost:18789")
 OPENCLAW_TOKEN = os.environ.get("OPENCLAW_TOKEN", "")
 
 AUDIO_DEVICE = os.environ.get("AUDIO_DEVICE", "plughw:1,0")
-AUDIO_OUTPUT_DEVICE = os.environ.get("AUDIO_OUTPUT_DEVICE", "default")
-AUDIO_OUTPUT_CARD = int(os.environ.get("AUDIO_OUTPUT_CARD", "0"))  # ALSA card for amixer
+AUDIO_OUTPUT_DEVICE = os.environ.get("AUDIO_OUTPUT_DEVICE", "plughw:1,0")
+AUDIO_OUTPUT_CARD = int(os.environ.get("AUDIO_OUTPUT_CARD", "1"))  # ALSA card for amixer
 AUDIO_SAMPLE_RATE = int(os.environ.get("AUDIO_SAMPLE_RATE", "16000"))
 
 DRY_RUN = not OPENAI_API_KEY
@@ -33,7 +43,7 @@ DRY_RUN = not OPENAI_API_KEY
 LCD_BACKLIGHT = int(os.environ.get("LCD_BACKLIGHT", "70"))
 UI_MAX_FPS = int(os.environ.get("UI_MAX_FPS", "4"))
 
-# Speak the assistant response via OpenAI TTS (like whisplay-ai-chatbot)
+# Speak the assistant response through the selected TTS provider.
 ENABLE_TTS = os.environ.get("ENABLE_TTS", "true").lower() in ("true", "1", "yes")
 
 # Number of past exchanges (user+assistant pairs) to keep for conversation context
@@ -51,6 +61,11 @@ def print_config():
     print(f"OPENAI_TTS_SPEED        = {OPENAI_TTS_SPEED}")
     print(f"OPENAI_TTS_GAIN_DB      = {OPENAI_TTS_GAIN_DB}")
     print(f"OPENAI_TTS_INSTRUCTIONS = {OPENAI_TTS_INSTRUCTIONS[:60]}...")
+    print(f"TTS_PROVIDER            = {TTS_PROVIDER}")
+    print(f"ELEVENLABS_MODEL_ID     = {ELEVENLABS_MODEL_ID}")
+    print(f"ELEVENLABS_OUTPUT_FMT   = {ELEVENLABS_OUTPUT_FORMAT}")
+    print(f"ELEVENLABS_API_KEY set  = {bool(ELEVENLABS_API_KEY)}")
+    print(f"ELEVENLABS_VOICE_ID set = {bool(ELEVENLABS_VOICE_ID)}")
     print(f"OPENCLAW_BASE_URL       = {OPENCLAW_BASE_URL}")
     print(f"AUDIO_DEVICE            = {AUDIO_DEVICE}")
     print(f"AUDIO_OUTPUT_DEVICE     = {AUDIO_OUTPUT_DEVICE}")

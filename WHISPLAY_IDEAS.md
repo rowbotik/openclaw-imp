@@ -4,7 +4,8 @@ This project is inspired by [whisplay-ai-chatbot](https://github.com/PiSugar/whi
 
 ## Implemented
 
-- **TTS playback** – Optional spoken responses via OpenAI TTS (like whisplay). Set `ENABLE_TTS=true` in `.env` so the device speaks the assistant response after it’s streamed. Uses existing `tts_openai.py` (OpenAI TTS + aplay). Cancel with the button during playback.
+- **TTS playback** – Optional spoken responses via OpenAI or ElevenLabs TTS (like whisplay). Set `ENABLE_TTS=true` in `.env` so the device speaks the assistant response after it’s streamed. Uses existing `tts_openai.py` (provider TTS + aplay). Cancel with the button during playback.
+- **Imp Zero character** – The display character is a simple Gigapet-style single-eye Imp with two horns. Listening, thinking, and speaking states reuse the same chunky sprite pipeline, with speech mouth movement driven by playback RMS.
 - **Battery display** – Already present: PiSugar socket + sysfs fallback in `display.py` (top-right corner).
 
 ## Possible next steps

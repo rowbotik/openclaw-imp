@@ -4,7 +4,6 @@ import sys
 import os
 import threading
 import time
-from datetime import datetime
 
 try:
     import numpy as np
@@ -34,7 +33,7 @@ STATUS_SUB_FONT_SIZE = 12
 RESPONSE_FONT_SIZE = 17
 TITLE_FONT_SIZE = 14
 BATTERY_FONT_SIZE = 10
-CLOCK_FONT_SIZE = 28
+IMP_LABEL_FONT_SIZE = 42
 ACCENT_BAR_HEIGHT = 3
 POWER_SUPPLY_SYS = "/sys/class/power_supply"
 PISUGAR_SOCKET = "/tmp/pisugar-server.sock"
@@ -223,27 +222,31 @@ def _read_battery() -> tuple[int | None, str | None]:
     return (None, None)
 
 
-# ── Pixel-art sprite frame generation (Kirby-style) ──────────────
+# ── Pixel-art Imp Zero frame generation ──────────────────────────
 
 _SPX = 8  # each "pixel" is an 8×8 block → 30×30 logical grid on 240×240
 
-_C_BODY = (255, 146, 171)
-_C_HIGHLIGHT = (255, 190, 205)
-_C_OUTLINE = (140, 55, 80)
-_C_FOOT = (178, 42, 65)
-_C_EYE = (20, 20, 80)
+_C_BODY = (255, 207, 31)
+_C_HIGHLIGHT = (255, 232, 78)
+_C_OUTLINE = (126, 91, 0)
+_C_FOOT = (230, 171, 0)
+_C_EYE = (0, 0, 0)
 _C_SPARKLE = (255, 255, 255)
-_C_CHEEK = (255, 95, 130)
-_C_MOUTH_INT = (20, 20, 30)
-_C_MOUTH_EDGE = (180, 50, 80)
+_C_CHEEK = (255, 177, 38)
+_C_MOUTH_INT = (0, 0, 0)
+_C_MOUTH_EDGE = (0, 0, 0)
+_C_TONGUE = (255, 88, 93)
+_C_HORN = (255, 255, 244)
+_C_HORN_SHADOW = (223, 213, 178)
+_C_ZAP = (255, 221, 48)
 
 # Round body
 _MAIN_CELLS: set[tuple[int, int]] = set()
 _body_def: dict[int, tuple[int, int]] = {
-    4: (12, 17), 5: (10, 19), 6: (9, 20), 7: (8, 21),
+    5: (13, 16), 6: (11, 18), 7: (9, 20), 8: (8, 21),
     17: (8, 21), 18: (9, 20), 19: (10, 19), 20: (12, 17),
 }
-for _r in range(8, 17):
+for _r in range(9, 17):
     _body_def[_r] = (7, 22)
 for _r, (_s, _e) in _body_def.items():
     for _c in range(_s, _e + 1):
@@ -252,20 +255,41 @@ for _r, (_s, _e) in _body_def.items():
 # Stubby arms
 _ARM_CELLS: set[tuple[int, int]] = set()
 for _p in [
-    (5, 13), (5, 14), (6, 12), (6, 13), (6, 14), (6, 15),
-    (24, 13), (24, 14), (23, 12), (23, 13), (23, 14), (23, 15),
+    (5, 13), (5, 14), (6, 12), (6, 13), (6, 14),
+    (24, 13), (24, 14), (23, 12), (23, 13), (23, 14),
 ]:
     _ARM_CELLS.add(_p)
 
 # Rounded feet
 _FOOT_CELLS: set[tuple[int, int]] = set()
 for _p in [
-    (10, 20), (11, 20), (12, 20), (10, 21), (11, 21), (12, 21), (11, 22),
-    (17, 20), (18, 20), (19, 20), (17, 21), (18, 21), (19, 21), (18, 22),
+    (10, 20), (11, 20), (12, 20), (11, 21),
+    (17, 20), (18, 20), (19, 20), (18, 21),
 ]:
     _FOOT_CELLS.add(_p)
 
 _BODY_CELLS = _MAIN_CELLS | _ARM_CELLS | _FOOT_CELLS
+
+_HORN_CELLS: set[tuple[int, int]] = {
+    (9, 3), (10, 3), (9, 4), (10, 4), (11, 4), (10, 5), (11, 5),
+    (19, 3), (20, 3), (18, 4), (19, 4), (20, 4), (18, 5), (19, 5),
+}
+
+_EAR_CELLS: set[tuple[int, int]] = {
+    (6, 13), (6, 14), (5, 14), (5, 15),
+    (23, 13), (23, 14), (24, 14), (24, 15),
+}
+
+_TUFT_CELLS: set[tuple[int, int]] = {
+    (14, 4), (15, 4), (15, 3), (16, 3), (15, 5), (16, 5), (17, 5),
+}
+
+_ZAP_CELLS: set[tuple[int, int]] = {
+    (4, 10), (5, 10), (5, 11), (6, 11),
+    (3, 13), (4, 13), (4, 14), (5, 14),
+    (24, 10), (25, 10), (24, 11), (23, 11),
+    (25, 13), (26, 13), (25, 14), (24, 14),
+}
 
 # Sphere highlight (upper-left shine)
 _HIGHLIGHT_CELLS: set[tuple[int, int]] = set()
@@ -281,8 +305,6 @@ _CHEEK_CELLS: set[tuple[int, int]] = {
 
 
 def _body_color(cx: int, cy: int) -> tuple[int, int, int]:
-    if (cx, cy) in _FOOT_CELLS and (cx, cy) not in _MAIN_CELLS:
-        return _C_FOOT
     if (cx, cy) in _HIGHLIGHT_CELLS:
         return _C_HIGHLIGHT
     if (cx, cy) in _CHEEK_CELLS:
@@ -296,13 +318,22 @@ def _spx(draw: ImageDraw.ImageDraw, gx: int, gy: int, color: tuple[int, int, int
 
 
 def _sprite_body(draw: ImageDraw.ImageDraw):
-    for cx, cy in _BODY_CELLS:
+    silhouette = _BODY_CELLS | _HORN_CELLS | _EAR_CELLS | _TUFT_CELLS
+    for cx, cy in silhouette:
         for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             nx, ny = cx + dx, cy + dy
-            if (nx, ny) not in _BODY_CELLS and 0 <= nx < 30 and 0 <= ny < 30:
+            if (nx, ny) not in silhouette and 0 <= nx < 30 and 0 <= ny < 30:
                 _spx(draw, nx, ny, _C_OUTLINE)
+    for cx, cy in _ZAP_CELLS:
+        _spx(draw, cx, cy, _C_ZAP)
+    for cx, cy in _EAR_CELLS:
+        _spx(draw, cx, cy, _C_BODY)
     for cx, cy in _BODY_CELLS:
         _spx(draw, cx, cy, _body_color(cx, cy))
+    for cx, cy in _TUFT_CELLS:
+        _spx(draw, cx, cy, _C_BODY)
+    for cx, cy in _HORN_CELLS:
+        _spx(draw, cx, cy, _C_HORN if cy <= 3 else _C_HORN_SHADOW)
     # Foot outlines (feet that overlap with body get foot color)
     for cx, cy in _FOOT_CELLS:
         _spx(draw, cx, cy, _C_FOOT)
@@ -312,35 +343,41 @@ def _sprite_eyes_open(
     draw: ImageDraw.ImageDraw, dx: int = 0, dy: int = 0, wide: bool = False,
 ):
     y0 = 7 if wide else 8
-    for ey in range(y0, 15):
-        for ex in (10, 11, 12):
+    eye_def: dict[int, tuple[int, int]] = {
+        y0: (13, 16),
+        y0 + 1: (12, 17),
+        y0 + 2: (11, 18),
+        y0 + 3: (11, 18),
+        y0 + 4: (11, 18),
+        y0 + 5: (12, 17),
+        y0 + 6: (13, 16),
+    }
+    for ey, (start, end) in eye_def.items():
+        for ex in range(start, end + 1):
             _spx(draw, ex, ey, _C_EYE)
-        for ex in (17, 18, 19):
-            _spx(draw, ex, ey, _C_EYE)
-    sx = max(10, min(12, 10 + dx))
+    sx = max(12, min(16, 13 + dx))
     sy = max(y0, min(y0 + 3, y0 + dy))
     _spx(draw, sx, sy, _C_SPARKLE)
     _spx(draw, sx, sy + 1, _C_SPARKLE)
-    rx = max(17, min(19, 17 + dx))
-    _spx(draw, rx, sy, _C_SPARKLE)
-    _spx(draw, rx, sy + 1, _C_SPARKLE)
+    _spx(draw, sx + 1, sy, _C_SPARKLE)
 
 
 def _sprite_eyes_blink(draw: ImageDraw.ImageDraw):
-    for ex in (10, 11, 12, 17, 18, 19):
+    for ex in range(11, 19):
         _spx(draw, ex, 11, _C_EYE)
 
 
 def _sprite_eyes_happy(draw: ImageDraw.ImageDraw):
-    """Closed happy arcs."""
-    for col in (10, 11, 12):
+    """Single closed happy eye arc."""
+    for col in range(12, 18):
         _spx(draw, col, 10, _C_EYE)
-    _spx(draw, 10, 11, _C_EYE)
     _spx(draw, 12, 11, _C_EYE)
-    for col in (17, 18, 19):
-        _spx(draw, col, 10, _C_EYE)
     _spx(draw, 17, 11, _C_EYE)
-    _spx(draw, 19, 11, _C_EYE)
+
+
+def _sprite_mouth_neutral(draw: ImageDraw.ImageDraw):
+    for col in range(13, 17):
+        _spx(draw, col, 17, _C_MOUTH_EDGE)
 
 
 def _sprite_mouth_closed(draw: ImageDraw.ImageDraw):
@@ -362,8 +399,8 @@ def _sprite_mouth_small(draw: ImageDraw.ImageDraw):
     _spx(draw, 16, 17, _C_MOUTH_EDGE)
     _spx(draw, 14, 17, _C_MOUTH_INT)
     _spx(draw, 15, 17, _C_MOUTH_INT)
-    _spx(draw, 14, 18, _C_MOUTH_EDGE)
-    _spx(draw, 15, 18, _C_MOUTH_EDGE)
+    _spx(draw, 14, 18, _C_TONGUE)
+    _spx(draw, 15, 18, _C_TONGUE)
 
 
 def _sprite_mouth_open(draw: ImageDraw.ImageDraw):
@@ -374,25 +411,103 @@ def _sprite_mouth_open(draw: ImageDraw.ImageDraw):
     _spx(draw, 16, 17, _C_MOUTH_EDGE)
     _spx(draw, 14, 17, _C_MOUTH_INT)
     _spx(draw, 15, 17, _C_MOUTH_INT)
+    _spx(draw, 14, 18, _C_TONGUE)
+    _spx(draw, 15, 18, _C_TONGUE)
 
 
 def _sprite_mouth_wide(draw: ImageDraw.ImageDraw):
     for col in range(12, 18):
-        _spx(draw, col, 15, _C_MOUTH_EDGE)
-        _spx(draw, col, 19, _C_MOUTH_EDGE)
-    for row in (16, 17, 18):
+        _spx(draw, col, 17, _C_MOUTH_EDGE)
+        _spx(draw, col, 20, _C_MOUTH_EDGE)
+    for row in (18, 19):
         _spx(draw, 12, row, _C_MOUTH_EDGE)
         _spx(draw, 17, row, _C_MOUTH_EDGE)
         for col in range(13, 17):
             _spx(draw, col, row, _C_MOUTH_INT)
+    for col in range(13, 17):
+        _spx(draw, col, 19, _C_TONGUE)
 
 
-def _make_sprite(eyes_fn, mouth_fn) -> Image.Image:
+def _sprite_mouth_sad(draw: ImageDraw.ImageDraw):
+    _spx(draw, 12, 18, _C_MOUTH_EDGE)
+    _spx(draw, 17, 18, _C_MOUTH_EDGE)
+    for col in range(13, 17):
+        _spx(draw, col, 17, _C_MOUTH_EDGE)
+
+
+def _sprite_mouth_o(draw: ImageDraw.ImageDraw):
+    _spx(draw, 14, 17, _C_MOUTH_EDGE)
+    _spx(draw, 15, 17, _C_MOUTH_EDGE)
+    _spx(draw, 14, 18, _C_TONGUE)
+    _spx(draw, 15, 18, _C_TONGUE)
+
+
+def _sprite_eyes_angry(draw: ImageDraw.ImageDraw):
+    _sprite_eyes_open(draw, dx=-1, dy=-1)
+    for ex, ey in ((11, 8), (12, 9), (17, 8), (16, 9)):
+        _spx(draw, ex, ey, _C_HORN)
+
+
+def _sprite_eyes_sleepy(draw: ImageDraw.ImageDraw):
+    for col in range(11, 19):
+        _spx(draw, col, 11, _C_EYE)
+    _spx(draw, 12, 12, _C_EYE)
+    _spx(draw, 17, 12, _C_EYE)
+
+
+def _decor_question(draw: ImageDraw.ImageDraw):
+    for gx, gy in ((20, 6), (21, 6), (22, 7), (22, 8), (21, 9), (21, 11)):
+        _spx(draw, gx, gy, _C_SPARKLE)
+
+
+def _decor_exclaim(draw: ImageDraw.ImageDraw):
+    for gx, gy in ((22, 6), (22, 7), (22, 8), (22, 10)):
+        _spx(draw, gx, gy, (255, 88, 93))
+
+
+def _decor_sleep(draw: ImageDraw.ImageDraw):
+    for gx, gy, color in (
+        (21, 6, (74, 171, 255)), (22, 5, (74, 171, 255)),
+        (23, 4, (74, 171, 255)), (23, 7, (74, 171, 255)),
+    ):
+        _spx(draw, gx, gy, color)
+
+
+def _decor_heart(draw: ImageDraw.ImageDraw):
+    for gx, gy in ((22, 6), (24, 6), (21, 7), (22, 7), (23, 7), (24, 7), (25, 7), (22, 8), (23, 8), (24, 8), (23, 9)):
+        _spx(draw, gx, gy, (255, 88, 93))
+
+
+def _decor_wifi(draw: ImageDraw.ImageDraw):
+    green = (91, 211, 54)
+    for gx, gy in ((21, 6), (22, 5), (23, 5), (24, 6), (22, 7), (23, 7), (23, 9)):
+        _spx(draw, gx, gy, green)
+
+
+def _decor_error(draw: ImageDraw.ImageDraw):
+    red = (255, 88, 93)
+    for offset in range(4):
+        _spx(draw, 22 + offset, 5 + offset, red)
+        _spx(draw, 25 - offset, 5 + offset, red)
+
+
+def _decor_low_power(draw: ImageDraw.ImageDraw):
+    red = (255, 88, 93)
+    _spx(draw, 23, 6, _C_SPARKLE)
+    _spx(draw, 24, 6, _C_SPARKLE)
+    _spx(draw, 23, 7, _C_SPARKLE)
+    _spx(draw, 24, 7, _C_SPARKLE)
+    _spx(draw, 24, 8, red)
+
+
+def _make_sprite(eyes_fn, mouth_fn, decor_fn=None) -> Image.Image:
     img = Image.new("RGB", (240, 240), (0, 0, 0))
     draw = ImageDraw.Draw(img)
     _sprite_body(draw)
     eyes_fn(draw)
     mouth_fn(draw)
+    if decor_fn:
+        decor_fn(draw)
     return img
 
 
@@ -401,7 +516,7 @@ def _apply_blink(sprite: Image.Image) -> Image.Image:
     img = sprite.copy()
     draw = ImageDraw.Draw(img)
     for ey in range(7, 15):
-        for ex in (10, 11, 12, 17, 18, 19):
+        for ex in range(11, 19):
             if (ex, ey) in _BODY_CELLS:
                 _spx(draw, ex, ey, _body_color(ex, ey))
     _sprite_eyes_blink(draw)
@@ -411,20 +526,31 @@ def _apply_blink(sprite: Image.Image) -> Image.Image:
 def _generate_sprite_frames() -> dict[str, Image.Image]:
     bases = {
         "idle": _make_sprite(_sprite_eyes_open, _sprite_mouth_smile),
+        "happy": _make_sprite(_sprite_eyes_open, _sprite_mouth_smile),
+        "excited": _make_sprite(_sprite_eyes_open, _sprite_mouth_wide),
+        "proud": _make_sprite(_sprite_eyes_happy, _sprite_mouth_smile),
+        "curious": _make_sprite(_sprite_eyes_open, _sprite_mouth_neutral, _decor_question),
         "listen": _make_sprite(
-            lambda d: _sprite_eyes_open(d, wide=True), _sprite_mouth_small,
+            lambda d: _sprite_eyes_open(d, wide=True), _sprite_mouth_o,
         ),
         "think1": _make_sprite(
-            lambda d: _sprite_eyes_open(d, dx=1, dy=-1), _sprite_mouth_closed,
+            lambda d: _sprite_eyes_open(d, dx=1, dy=-1), _sprite_mouth_neutral, _decor_question,
         ),
         "think2": _make_sprite(
-            lambda d: _sprite_eyes_open(d, dx=-1, dy=-1), _sprite_mouth_closed,
+            lambda d: _sprite_eyes_open(d, dx=-1, dy=-1), _sprite_mouth_neutral, _decor_question,
         ),
         "talk0": _make_sprite(_sprite_eyes_open, _sprite_mouth_closed),
         "talk1": _make_sprite(_sprite_eyes_open, _sprite_mouth_small),
         "talk2": _make_sprite(_sprite_eyes_open, _sprite_mouth_open),
         "talk3": _make_sprite(_sprite_eyes_open, _sprite_mouth_wide),
-        "happy": _make_sprite(_sprite_eyes_happy, _sprite_mouth_smile),
+        "sleepy": _make_sprite(_sprite_eyes_sleepy, _sprite_mouth_o, _decor_sleep),
+        "love": _make_sprite(_sprite_eyes_open, _sprite_mouth_small, _decor_heart),
+        "sad": _make_sprite(_sprite_eyes_open, _sprite_mouth_sad),
+        "angry": _make_sprite(_sprite_eyes_angry, _sprite_mouth_sad),
+        "alert": _make_sprite(_sprite_eyes_open, _sprite_mouth_neutral, _decor_exclaim),
+        "connected": _make_sprite(_sprite_eyes_open, _sprite_mouth_smile, _decor_wifi),
+        "low_power": _make_sprite(_sprite_eyes_open, _sprite_mouth_sad, _decor_low_power),
+        "error": _make_sprite(_sprite_eyes_open, _sprite_mouth_sad, _decor_error),
     }
     frames = dict(bases)
     for key, sprite in bases.items():
@@ -448,11 +574,11 @@ class Display:
         self._status_sub_font = ImageFont.truetype(_FONT_PATH_REGULAR, STATUS_SUB_FONT_SIZE)
         self._response_font = ImageFont.truetype(_FONT_PATH_REGULAR, RESPONSE_FONT_SIZE)
         self._title_font = ImageFont.truetype(_FONT_PATH, TITLE_FONT_SIZE)
+        self._imp_font = ImageFont.truetype(_FONT_PATH, IMP_LABEL_FONT_SIZE)
         try:
             self._battery_font = ImageFont.truetype(_FONT_PATH_REGULAR, BATTERY_FONT_SIZE)
         except OSError:
             self._battery_font = self._status_sub_font  # fallback so battery corner still draws
-        self._clock_font = ImageFont.truetype(_FONT_PATH, CLOCK_FONT_SIZE)
         self._emoji_status = _load_emoji_font(STATUS_FONT_SIZE)
         self._emoji_response = _load_emoji_font(RESPONSE_FONT_SIZE)
 
@@ -701,8 +827,8 @@ class Display:
         self._cached_wrapped = []
 
     def set_idle_screen(self):
-        """Draw idle screen with clock, date, battery, and wifi status."""
-        img = Image.new("RGB", (self._width, self._height), (0, 0, 0))
+        """Draw idle screen with the Imp logo, battery, and wifi status."""
+        img = self._sprite_frames["idle"].copy()
         draw = ImageDraw.Draw(img)
 
         draw.rectangle((0, 0, self._width, ACCENT_BAR_HEIGHT), fill=(40, 40, 40))
@@ -715,28 +841,14 @@ class Display:
         else:
             draw.text((self._pad_x, self._pad_y), "\u25cb", font=self._battery_font, fill=(180, 60, 60))
 
-        now = datetime.now()
-
-        # Large clock
-        time_str = now.strftime("%H:%M")
-        tw = self._clock_font.getlength(time_str)
-        tx = int((self._width - tw) / 2)
-        ty = int(self._height * 0.22)
-        draw.text((tx, ty), time_str, font=self._clock_font, fill=(220, 220, 220))
-
-        # Date
-        date_str = now.strftime("%a, %b %d")
-        dw = self._status_sub_font.getlength(date_str)
-        dx = int((self._width - dw) / 2)
-        dy = ty + CLOCK_FONT_SIZE + 6
-        draw.text((dx, dy), date_str, font=self._status_sub_font, fill=(100, 100, 100))
-
-        # Subtitle
-        sub = "Press button to talk"
-        sw = self._status_sub_font.getlength(sub)
-        sx = int((self._width - sw) / 2)
-        sy = self._height - STATUS_SUB_FONT_SIZE - self._pad_y
-        draw.text((sx, sy), sub, font=self._status_sub_font, fill=(70, 70, 70))
+        label = "Imp"
+        lw = self._imp_font.getlength(label)
+        draw.text(
+            (int((self._width - lw) / 2), 184),
+            label,
+            font=self._imp_font,
+            fill=(255, 255, 255),
+        )
 
         self._draw(img)
         self._response_buf = ""
@@ -814,7 +926,7 @@ class Display:
                 fill=self._ACCENT_COLORS.get(state, (40, 40, 40)),
             )
 
-            label = {"listening": "Listening…", "thinking": "Thinking…"}.get(state, "")
+            label = {"listening": "Imp listening...", "thinking": "Imp thinking..."}.get(state, "")
             if label:
                 lw = self._status_sub_font.getlength(label)
                 draw.text(
