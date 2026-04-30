@@ -33,6 +33,12 @@ IDLE_MOODS = [
     "sad", "angry", "alert", "connected", "low_power", "error",
 ]
 TTS_PROVIDERS = ["openai", "elevenlabs"]
+ELEVENLABS_VOICES = [
+    ("goT3UYdM9bhm0n2lmKQx", "Budget Jarvis"),
+    ("xaMedXmThhzMKtFMCWRm", "Dry Digital"),
+    ("HrhlDx94eg2HKR2e45Dp", "Chipper Friday"),
+    ("dHd5gvgSOzSfduK4CvEg", "Late Night Show"),
+]
 
 TEXT_KEYS = {
     "TTS_PROVIDER",
@@ -247,6 +253,19 @@ def select_box(name: str, values: dict[str, str], label: str, options: list[str]
     return f'<label><span>{escape(label)}</span><select name="{name}">{"".join(opts)}</select></label>'
 
 
+def select_pairs(name: str, values: dict[str, str], label: str, options: list[tuple[str, str]]) -> str:
+    selected = values.get(name, DEFAULTS.get(name, ""))
+    opts = []
+    known = False
+    for value, label_text in options:
+        attr = " selected" if value == selected else ""
+        known = known or value == selected
+        opts.append(f'<option value="{escape(value)}"{attr}>{escape(label_text)}</option>')
+    if selected and not known:
+        opts.append(f'<option value="{escape(selected)}" selected>Custom: {escape(selected)}</option>')
+    return f'<label><span>{escape(label)}</span><select name="{name}">{"".join(opts)}</select></label>'
+
+
 def textarea(name: str, values: dict[str, str], label: str) -> str:
     return (
         f'<label class="wide"><span>{escape(label)}</span>'
@@ -314,7 +333,7 @@ def render_page(message: str = "") -> bytes:
         {input_range("TTS_BASS_DB", values, "Bass dB", "-10", "10", "1")}
         {input_range("TTS_TREBLE_DB", values, "Treble dB", "-10", "10", "1")}
         {input_range("TTS_NORM_DB", values, "Normalize dB", "-12", "0", "1")}
-        {input_text("ELEVENLABS_VOICE_ID", values, "ElevenLabs voice ID")}
+        {select_pairs("ELEVENLABS_VOICE_ID", values, "ElevenLabs voice", ELEVENLABS_VOICES)}
         {input_text("ELEVENLABS_MODEL_ID", values, "ElevenLabs model")}
         {input_text("ELEVENLABS_OUTPUT_FORMAT", values, "ElevenLabs output")}
         {textarea("OPENCLAW_RESPONSE_STYLE", values, "Daemon style instruction")}

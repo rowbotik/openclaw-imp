@@ -167,6 +167,9 @@ ELEVENLABS_API_KEY=your-elevenlabs-api-key
 ELEVENLABS_VOICE_ID=your-elevenlabs-voice-id
 ```
 
+The dashboard includes named ElevenLabs presets for Budget Jarvis, Dry Digital,
+Chipper Friday, and Late Night Show.
+
 ## Deploy with systemd
 
 The included `sync.sh` script deploys to Imp Zero and sets up the service:
