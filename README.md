@@ -134,7 +134,10 @@ All settings are configured via environment variables (loaded from `.env`):
 | `OPENAI_TTS_MODEL` | `gpt-4o-mini-tts-2025-12-15` | OpenAI TTS model |
 | `OPENAI_TTS_VOICE` | `coral` | OpenAI TTS voice |
 | `OPENAI_TTS_SPEED` | `1.1` | OpenAI TTS speed (0.25-4.0) |
-| `OPENAI_TTS_GAIN_DB` | `9` | Software volume boost in dB |
+| `OPENAI_TTS_GAIN_DB` | `0` | Software gain in dB; high values can clip small speakers |
+| `TTS_BASS_DB` | `4` | SoX bass EQ before playback |
+| `TTS_TREBLE_DB` | `-3` | SoX treble EQ before playback |
+| `TTS_NORM_DB` | `-3` | SoX normalization headroom to reduce rattle/clipping |
 | `ELEVENLABS_API_KEY` | _(optional)_ | Required when `TTS_PROVIDER=elevenlabs` |
 | `ELEVENLABS_VOICE_ID` | _(optional)_ | Required when `TTS_PROVIDER=elevenlabs` |
 | `ELEVENLABS_MODEL_ID` | `eleven_flash_v2_5` | ElevenLabs TTS model |
@@ -142,7 +145,7 @@ All settings are configured via environment variables (loaded from `.env`):
 | `AUDIO_DEVICE` | `plughw:1,0` | ALSA input device |
 | `AUDIO_OUTPUT_DEVICE` | `plughw:1,0` | ALSA output device |
 | `AUDIO_OUTPUT_CARD` | `1` | ALSA card used for speaker volume controls |
-| `SPEAKER_VOLUME` | `100` | ALSA speaker volume set before TTS playback |
+| `SPEAKER_VOLUME` | `55` | ALSA speaker volume set before TTS playback |
 | `AUDIO_SAMPLE_RATE` | `16000` | Recording sample rate |
 | `LCD_BACKLIGHT` | `70` | Backlight brightness (0–100) |
 | `UI_MAX_FPS` | `8` | Max display refresh rate for sprite animation and response drawing |

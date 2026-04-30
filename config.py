@@ -11,7 +11,10 @@ OPENAI_TRANSCRIBE_MODEL = os.environ.get(
 OPENAI_TTS_MODEL = os.environ.get("OPENAI_TTS_MODEL", "gpt-4o-mini-tts-2025-12-15")
 OPENAI_TTS_VOICE = os.environ.get("OPENAI_TTS_VOICE", "coral")
 OPENAI_TTS_SPEED = float(os.environ.get("OPENAI_TTS_SPEED", "1.1"))  # 0.25–4.0
-OPENAI_TTS_GAIN_DB = float(os.environ.get("OPENAI_TTS_GAIN_DB", "9"))  # extra dB boost (e.g. 9 ≈ 2.8× louder)
+OPENAI_TTS_GAIN_DB = float(os.environ.get("OPENAI_TTS_GAIN_DB", "0"))  # extra dB boost; keep low to avoid clipping
+TTS_BASS_DB = float(os.environ.get("TTS_BASS_DB", "4"))
+TTS_TREBLE_DB = float(os.environ.get("TTS_TREBLE_DB", "-3"))
+TTS_NORM_DB = float(os.environ.get("TTS_NORM_DB", "-3"))
 OPENAI_TTS_INSTRUCTIONS = os.environ.get(
     "OPENAI_TTS_INSTRUCTIONS",
     "Speak in a warm, sweet, and playful tone with a gentle high pitch. "
@@ -43,7 +46,7 @@ OPENCLAW_RESPONSE_STYLE = os.environ.get(
 AUDIO_DEVICE = os.environ.get("AUDIO_DEVICE", "plughw:1,0")
 AUDIO_OUTPUT_DEVICE = os.environ.get("AUDIO_OUTPUT_DEVICE", "plughw:1,0")
 AUDIO_OUTPUT_CARD = int(os.environ.get("AUDIO_OUTPUT_CARD", "1"))  # ALSA card for amixer
-SPEAKER_VOLUME = int(os.environ.get("SPEAKER_VOLUME", "100"))
+SPEAKER_VOLUME = int(os.environ.get("SPEAKER_VOLUME", "55"))
 AUDIO_SAMPLE_RATE = int(os.environ.get("AUDIO_SAMPLE_RATE", "16000"))
 
 DRY_RUN = not OPENAI_API_KEY
@@ -74,6 +77,9 @@ def print_config():
     print(f"OPENAI_TTS_VOICE        = {OPENAI_TTS_VOICE}")
     print(f"OPENAI_TTS_SPEED        = {OPENAI_TTS_SPEED}")
     print(f"OPENAI_TTS_GAIN_DB      = {OPENAI_TTS_GAIN_DB}")
+    print(f"TTS_BASS_DB             = {TTS_BASS_DB}")
+    print(f"TTS_TREBLE_DB           = {TTS_TREBLE_DB}")
+    print(f"TTS_NORM_DB             = {TTS_NORM_DB}")
     print(f"OPENAI_TTS_INSTRUCTIONS = {OPENAI_TTS_INSTRUCTIONS[:60]}...")
     print(f"TTS_PROVIDER            = {TTS_PROVIDER}")
     print(f"ELEVENLABS_MODEL_ID     = {ELEVENLABS_MODEL_ID}")

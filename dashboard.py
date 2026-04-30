@@ -50,7 +50,10 @@ TEXT_KEYS = {
 }
 NUMERIC_KEYS = {
     "OPENAI_TTS_SPEED": (0.25, 4.0),
-    "OPENAI_TTS_GAIN_DB": (0.0, 18.0),
+    "OPENAI_TTS_GAIN_DB": (-12.0, 12.0),
+    "TTS_BASS_DB": (-10.0, 10.0),
+    "TTS_TREBLE_DB": (-10.0, 10.0),
+    "TTS_NORM_DB": (-12.0, 0.0),
     "SPEAKER_VOLUME": (0, 100),
     "LCD_BACKLIGHT": (0, 100),
     "UI_MAX_FPS": (1, 20),
@@ -72,7 +75,10 @@ DEFAULTS = {
     "OPENAI_TTS_MODEL": "gpt-4o-mini-tts-2025-12-15",
     "OPENAI_TTS_VOICE": "fable",
     "OPENAI_TTS_SPEED": "1.0",
-    "OPENAI_TTS_GAIN_DB": "9",
+    "OPENAI_TTS_GAIN_DB": "0",
+    "TTS_BASS_DB": "4",
+    "TTS_TREBLE_DB": "-3",
+    "TTS_NORM_DB": "-3",
     "OPENAI_TTS_INSTRUCTIONS": (
         "Speak like a tiny helpful imp: warm, mischievous, compact, and "
         "expressive. Do not sound babyish. Keep it natural and quick."
@@ -82,7 +88,7 @@ DEFAULTS = {
     "ELEVENLABS_OUTPUT_FORMAT": "pcm_24000",
     "AUDIO_OUTPUT_DEVICE": "plughw:1,0",
     "AUDIO_OUTPUT_CARD": "1",
-    "SPEAKER_VOLUME": "100",
+    "SPEAKER_VOLUME": "55",
     "LCD_BACKLIGHT": "70",
     "UI_MAX_FPS": "8",
     "DISPLAY_SLEEP_TIMEOUT": "0",
@@ -304,7 +310,10 @@ def render_page(message: str = "") -> bytes:
         {select_box("OPENAI_TTS_VOICE", values, "OpenAI voice", OPENAI_VOICES)}
         {input_text("OPENAI_TTS_MODEL", values, "OpenAI model")}
         {input_range("OPENAI_TTS_SPEED", values, "Speed", "0.25", "4", "0.05")}
-        {input_range("OPENAI_TTS_GAIN_DB", values, "Gain dB", "0", "18", "1")}
+        {input_range("OPENAI_TTS_GAIN_DB", values, "Gain dB", "-12", "12", "1")}
+        {input_range("TTS_BASS_DB", values, "Bass dB", "-10", "10", "1")}
+        {input_range("TTS_TREBLE_DB", values, "Treble dB", "-10", "10", "1")}
+        {input_range("TTS_NORM_DB", values, "Normalize dB", "-12", "0", "1")}
         {input_text("ELEVENLABS_VOICE_ID", values, "ElevenLabs voice ID")}
         {input_text("ELEVENLABS_MODEL_ID", values, "ElevenLabs model")}
         {input_text("ELEVENLABS_OUTPUT_FORMAT", values, "ElevenLabs output")}

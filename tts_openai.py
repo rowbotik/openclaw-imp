@@ -173,18 +173,7 @@ class TTSPlayer:
 
         wav_data = b"".join(resp.iter_content(chunk_size=4096))
 
-        gain_db = config.OPENAI_TTS_GAIN_DB
-        if gain_db > 0:
-            try:
-                r = subprocess.run(
-                    ["sox", "-t", "wav", "-", "-t", "wav", "-", "gain", str(gain_db)],
-                    input=wav_data, capture_output=True, timeout=30, check=False,
-                )
-                if r.returncode == 0 and r.stdout:
-                    wav_data = r.stdout
-            except (FileNotFoundError, subprocess.TimeoutExpired):
-                pass
-        return wav_data
+        return _process_tts_wav(wav_data)
 
     def _fetch_elevenlabs_wav(self, text: str) -> bytes | None:
         output_format = config.ELEVENLABS_OUTPUT_FORMAT
@@ -234,18 +223,7 @@ class TTSPlayer:
             # for Imp Zero so aplay can consume a normal WAV stream.
             wav_data = audio_data
 
-        gain_db = config.OPENAI_TTS_GAIN_DB
-        if gain_db > 0:
-            try:
-                r = subprocess.run(
-                    ["sox", "-t", "wav", "-", "-t", "wav", "-", "gain", str(gain_db)],
-                    input=wav_data, capture_output=True, timeout=30, check=False,
-                )
-                if r.returncode == 0 and r.stdout:
-                    wav_data = r.stdout
-            except (FileNotFoundError, subprocess.TimeoutExpired):
-                pass
-        return wav_data
+        return _process_tts_wav(wav_data)
 
     # ── Player thread: play pre-fetched WAVs back to back ────────
 
@@ -368,6 +346,36 @@ def _sample_rate_from_elevenlabs_format(output_format: str) -> int:
         return int(output_format.split("_", 1)[1])
     except (IndexError, ValueError):
         return 24000
+
+
+def _process_tts_wav(wav_data: bytes) -> bytes:
+    effects: list[str] = []
+    if config.TTS_BASS_DB:
+        effects.extend(["bass", str(config.TTS_BASS_DB)])
+    if config.TTS_TREBLE_DB:
+        effects.extend(["treble", str(config.TTS_TREBLE_DB)])
+    if config.OPENAI_TTS_GAIN_DB:
+        effects.extend(["gain", str(config.OPENAI_TTS_GAIN_DB)])
+    if config.TTS_NORM_DB:
+        # gain -n normalizes to the requested headroom, reducing clipping/rattle.
+        effects.extend(["gain", "-n", str(config.TTS_NORM_DB)])
+    if not effects:
+        return wav_data
+    try:
+        r = subprocess.run(
+            ["sox", "-t", "wav", "-", "-t", "wav", "-", *effects],
+            input=wav_data,
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+        if r.returncode == 0 and r.stdout:
+            return r.stdout
+        if r.stderr:
+            print(f"[tts] sox processing failed: {r.stderr.decode(errors='ignore')[:160]}")
+    except (FileNotFoundError, subprocess.TimeoutExpired) as e:
+        print(f"[tts] sox unavailable/skipped: {e}")
+    return wav_data
 
 
 def _pcm16_to_wav(pcm_data: bytes, sample_rate: int) -> bytes:
