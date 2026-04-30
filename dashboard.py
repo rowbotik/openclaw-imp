@@ -29,6 +29,7 @@ OPENAI_VOICES = [
 ]
 BODY_COLORS = ["yellow", "pink", "red", "blue", "green"]
 ACCESSORY_MODES = ["off", "random", "always"]
+BACKGROUND_MODES = ["off", "grid", "circuit", "stars"]
 IDLE_MOODS = [
     "happy", "idle", "excited", "proud", "curious", "sleepy", "love",
     "sad", "angry", "alert", "connected", "low_power", "error",
@@ -55,6 +56,7 @@ TEXT_KEYS = {
     "IMP_IDLE_MOOD",
     "IMP_BODY_COLOR",
     "IMP_ACCESSORY_MODE",
+    "IMP_BACKGROUND",
 }
 NUMERIC_KEYS = {
     "OPENAI_TTS_SPEED": (0.25, 4.0),
@@ -66,6 +68,7 @@ NUMERIC_KEYS = {
     "LCD_BACKLIGHT": (0, 100),
     "UI_MAX_FPS": (1, 20),
     "IMP_FLOAT_PIXELS": (0, 8),
+    "IMP_BACKGROUND_BRIGHTNESS": (0, 100),
     "DISPLAY_SLEEP_TIMEOUT": (0, 3600),
     "LED_IDLE_BRIGHTNESS": (0, 255),
 }
@@ -106,6 +109,8 @@ DEFAULTS = {
     "IMP_BODY_COLOR": "yellow",
     "IMP_ACCESSORY_MODE": "random",
     "IMP_SHADOW": "true",
+    "IMP_BACKGROUND": "circuit",
+    "IMP_BACKGROUND_BRIGHTNESS": "45",
     "ENABLE_LED": "true",
     "LED_IDLE_BRIGHTNESS": "0",
 }
@@ -150,6 +155,8 @@ def normalize_value(key: str, raw: str) -> str:
     if key == "IMP_IDLE_MOOD" and value not in IDLE_MOODS:
         return DEFAULTS[key]
     if key == "IMP_ACCESSORY_MODE" and value not in ACCESSORY_MODES:
+        return DEFAULTS[key]
+    if key == "IMP_BACKGROUND" and value not in BACKGROUND_MODES:
         return DEFAULTS[key]
     if "\n" in value or "\r" in value:
         value = " ".join(value.splitlines())
@@ -363,6 +370,8 @@ def render_page(message: str = "") -> bytes:
         {input_range("LCD_BACKLIGHT", values, "Backlight", "0", "100", "1")}
         {input_range("UI_MAX_FPS", values, "Animation FPS", "1", "20", "1")}
         {input_range("IMP_FLOAT_PIXELS", values, "Float pixels", "0", "8", "1")}
+        {select_box("IMP_BACKGROUND", values, "Background", BACKGROUND_MODES)}
+        {input_range("IMP_BACKGROUND_BRIGHTNESS", values, "Background brightness", "0", "100", "1")}
         <label class="toggle"><input type="checkbox" name="IMP_SHADOW"{shadow_checked}> Ground shadow</label>
         {input_text("DISPLAY_SLEEP_TIMEOUT", values, "Sleep timeout seconds", "number")}
         {select_box("IMP_IDLE_MOOD", values, "Idle mood", IDLE_MOODS)}

@@ -773,6 +773,11 @@ def _scaled_bob_px(tick: int) -> int:
     return int(round(raw / 6 * max_float))
 
 
+def _bg_color(rgb: tuple[int, int, int], brightness: int) -> tuple[int, int, int]:
+    level = max(0, min(100, brightness)) / 100
+    return tuple(max(0, min(255, int(channel * level))) for channel in rgb)
+
+
 class Display:
     def __init__(self, backlight=70):
         self.board = WhisPlayBoard()
@@ -1000,16 +1005,80 @@ class Display:
         sprite: Image.Image,
         y_shift: int = 0,
         shadow: bool = False,
+        tick: int = 0,
+        state: str = "idle",
     ) -> Image.Image:
-        if sprite.size == (self._width, self._height) and y_shift == 0 and not shadow:
+        background = getattr(config, "IMP_BACKGROUND", "circuit")
+        has_background = background != "off" and getattr(config, "IMP_BACKGROUND_BRIGHTNESS", 45) > 0
+        if sprite.size == (self._width, self._height) and y_shift == 0 and not shadow and not has_background:
             img = sprite.copy()
             return img
         img = Image.new("RGB", (self._width, self._height), (0, 0, 0))
+        if has_background:
+            self._draw_pixel_background(ImageDraw.Draw(img), tick, state)
         if shadow:
             self._draw_ground_shadow(ImageDraw.Draw(img), self._sprite_y_offset(sprite), y_shift)
         mask = _sprite_nonblack_mask(sprite)
         img.paste(sprite, (0, self._sprite_y_offset(sprite) - y_shift), mask)
         return img
+
+    def _draw_pixel_background(self, draw: ImageDraw.ImageDraw, tick: int, state: str):
+        mode = getattr(config, "IMP_BACKGROUND", "circuit")
+        brightness = getattr(config, "IMP_BACKGROUND_BRIGHTNESS", 45)
+        dim = _bg_color((18, 26, 28), brightness)
+        mid = _bg_color((24, 82, 72), brightness)
+        hot = _bg_color((34, 160, 112), brightness)
+        blue = _bg_color((28, 84, 132), brightness)
+
+        if mode == "grid":
+            for x in range((tick // 4) % 16, self._width, 16):
+                draw.line((x, 18, x, self._height - 20), fill=dim, width=1)
+            for y in range(20, self._height - 16, 16):
+                draw.line((0, y, self._width, y), fill=dim, width=1)
+            for x in range(8, self._width, 32):
+                for y in range(28, self._height - 18, 32):
+                    draw.rectangle((x, y, x + 1, y + 1), fill=mid)
+            return
+
+        if mode == "stars":
+            points = [
+                (24, 34), (56, 78), (204, 42), (218, 114), (34, 166),
+                (78, 206), (190, 198), (142, 34), (18, 118), (214, 166),
+            ]
+            for idx, (x, y) in enumerate(points):
+                color = hot if (tick // 8 + idx) % 4 == 0 else dim
+                draw.point((x, y), fill=color)
+                if (tick // 10 + idx) % 7 == 0:
+                    draw.point((x + 1, y), fill=color)
+                    draw.point((x, y + 1), fill=color)
+            return
+
+        # Default: a quiet circuit-board room. It avoids the center so the Imp
+        # stays readable, then lightly animates status pixels around the edges.
+        traces = [
+            ((8, 28), (58, 28), (58, 54), (86, 54)),
+            ((156, 32), (204, 32), (204, 72), (228, 72)),
+            ((10, 108), (42, 108), (42, 86), (74, 86)),
+            ((166, 102), (214, 102), (214, 126), (232, 126)),
+            ((14, 188), (50, 188), (50, 214), (94, 214)),
+            ((146, 210), (188, 210), (188, 184), (226, 184)),
+            ((110, 18), (110, 48), (132, 48), (132, 72)),
+            ((102, 222), (102, 198), (128, 198), (128, 174)),
+        ]
+        for idx, points in enumerate(traces):
+            color = mid if (tick // 12 + idx) % 5 == 0 else dim
+            draw.line(points, fill=color, width=1)
+            for x, y in points:
+                draw.rectangle((x - 1, y - 1, x + 1, y + 1), fill=color)
+
+        blips = [
+            (22, 52), (78, 28), (218, 48), (190, 88), (26, 132),
+            (62, 168), (208, 148), (224, 208), (84, 226), (156, 190),
+        ]
+        for idx, (x, y) in enumerate(blips):
+            if (tick // 6 + idx) % 6 in (0, 1):
+                color = hot if state in ("listening", "talking") else blue
+                draw.rectangle((x, y, x + 2, y + 2), fill=color)
 
     def _draw_ground_shadow(self, draw: ImageDraw.ImageDraw, y_offset: int, y_shift: int = 0):
         base_y = min(self._height - 18, y_offset + 218)
@@ -1187,7 +1256,13 @@ class Display:
             if state in ("listening", "thinking", "talking"):
                 bob_px = max(0, int(round(bob_px * 0.5)))
 
-            img = self._compose_sprite_frame(sprite, bob_px, shadow=config.IMP_SHADOW)
+            img = self._compose_sprite_frame(
+                sprite,
+                bob_px,
+                shadow=config.IMP_SHADOW,
+                tick=tick,
+                state=state,
+            )
 
             draw = ImageDraw.Draw(img)
 

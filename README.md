@@ -178,6 +178,8 @@ All settings are configured via environment variables (loaded from `.env`):
 | `IMP_ACCESSORY_MODE` | `random` | Random pixel accessories: `off`, `random`, or `always` |
 | `IMP_FLOAT_PIXELS` | `3` | Maximum idle/done float offset in pixels |
 | `IMP_SHADOW` | `true` | Draw a subtle gray pixel shadow under the Imp |
+| `IMP_BACKGROUND` | `circuit` | Pixel backdrop: `off`, `grid`, `circuit`, or `stars` |
+| `IMP_BACKGROUND_BRIGHTNESS` | `45` | Pixel backdrop brightness, 0-100 |
 | `ENABLE_LED` | `true` | Use the WhisPlay RGB status LED |
 | `LED_IDLE_BRIGHTNESS` | `0` | Idle LED brightness, `0` keeps it off |
 | `CONVERSATION_HISTORY_LENGTH` | `5` | Past exchanges to keep for context |
