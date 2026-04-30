@@ -51,8 +51,14 @@ def main() -> int:
         if name.endswith("_blink"):
             continue
         image.save(out_dir / f"{name}.png")
+        if name == "idle":
+            for accessory in display._ACCESSORY_NAMES:
+                display._apply_accessory(image, accessory).save(
+                    out_dir / f"idle_{accessory}.png"
+                )
 
-    print(f"wrote {len([k for k in frames if not k.endswith('_blink')])} sprites to {out_dir}")
+    count = len([k for k in frames if not k.endswith("_blink")]) + len(display._ACCESSORY_NAMES)
+    print(f"wrote {count} sprites to {out_dir}")
     return 0
 
 

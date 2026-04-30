@@ -28,6 +28,7 @@ OPENAI_VOICES = [
     "nova", "onyx", "sage", "shimmer", "verse", "cedar",
 ]
 BODY_COLORS = ["yellow", "pink", "red", "blue", "green"]
+ACCESSORY_MODES = ["off", "random", "always"]
 IDLE_MOODS = [
     "happy", "idle", "excited", "proud", "curious", "sleepy", "love",
     "sad", "angry", "alert", "connected", "low_power", "error",
@@ -53,6 +54,7 @@ TEXT_KEYS = {
     "AUDIO_OUTPUT_CARD",
     "IMP_IDLE_MOOD",
     "IMP_BODY_COLOR",
+    "IMP_ACCESSORY_MODE",
 }
 NUMERIC_KEYS = {
     "OPENAI_TTS_SPEED": (0.25, 4.0),
@@ -100,6 +102,7 @@ DEFAULTS = {
     "DISPLAY_SLEEP_TIMEOUT": "0",
     "IMP_IDLE_MOOD": "happy",
     "IMP_BODY_COLOR": "yellow",
+    "IMP_ACCESSORY_MODE": "random",
     "ENABLE_LED": "true",
     "LED_IDLE_BRIGHTNESS": "0",
 }
@@ -142,6 +145,8 @@ def normalize_value(key: str, raw: str) -> str:
     if key == "IMP_BODY_COLOR" and value not in BODY_COLORS:
         return DEFAULTS[key]
     if key == "IMP_IDLE_MOOD" and value not in IDLE_MOODS:
+        return DEFAULTS[key]
+    if key == "IMP_ACCESSORY_MODE" and value not in ACCESSORY_MODES:
         return DEFAULTS[key]
     if "\n" in value or "\r" in value:
         value = " ".join(value.splitlines())
@@ -356,6 +361,7 @@ def render_page(message: str = "") -> bytes:
         {input_text("DISPLAY_SLEEP_TIMEOUT", values, "Sleep timeout seconds", "number")}
         {select_box("IMP_IDLE_MOOD", values, "Idle mood", IDLE_MOODS)}
         {select_box("IMP_BODY_COLOR", values, "Body color", BODY_COLORS)}
+        {select_box("IMP_ACCESSORY_MODE", values, "Accessories", ACCESSORY_MODES)}
       </div>
     </section>
     <section>

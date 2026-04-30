@@ -1,4 +1,5 @@
 import re
+import random
 import socket
 import sys
 import os
@@ -33,8 +34,8 @@ STATUS_SUB_FONT_SIZE = 12
 RESPONSE_FONT_SIZE = 17
 TITLE_FONT_SIZE = 14
 BATTERY_FONT_SIZE = 10
-IMP_LABEL_FONT_SIZE = 13
-IMP_LABEL_SCALE = 2
+IMP_LABEL_FONT_SIZE = 8
+IMP_LABEL_SCALE = 1
 ACCENT_BAR_HEIGHT = 3
 POWER_SUPPLY_SYS = "/sys/class/power_supply"
 PISUGAR_SOCKET = "/tmp/pisugar-server.sock"
@@ -285,6 +286,13 @@ _C_TONGUE = (255, 88, 93)
 _C_HORN = (255, 255, 244)
 _C_HORN_SHADOW = (223, 213, 178)
 _C_ZAP = _PALETTE["zap"]
+_C_GOLD = (255, 221, 48)
+_C_RED = (255, 88, 93)
+_C_BLUE = (74, 171, 255)
+_C_GREEN = (91, 211, 54)
+_C_BLACK = (0, 0, 0)
+_C_DARK = (24, 24, 24)
+_C_GRAY = (120, 120, 120)
 
 # Round body
 _MAIN_CELLS: set[tuple[int, int]] = set()
@@ -546,6 +554,116 @@ def _decor_low_power(draw: ImageDraw.ImageDraw):
     _spx(draw, 24, 8, red)
 
 
+# ── Pixel accessory overlays ───────────────────────────────────────
+
+_ACCESSORY_NAMES = (
+    "bowler",
+    "party_hat",
+    "crown",
+    "bow_tie",
+    "halo",
+    "headphones",
+    "sleep_cap",
+    "sparkle_horns",
+)
+
+
+def _accessory_bowler(draw: ImageDraw.ImageDraw):
+    for gx in range(11, 19):
+        _spx(draw, gx, 5, _C_DARK)
+    for gx in range(9, 21):
+        _spx(draw, gx, 6, _C_DARK)
+    for gx in range(12, 18):
+        _spx(draw, gx, 3, _C_DARK)
+        _spx(draw, gx, 4, _C_DARK)
+    for gx in range(12, 18):
+        _spx(draw, gx, 5, _C_GRAY)
+
+
+def _accessory_party_hat(draw: ImageDraw.ImageDraw):
+    rows = {1: (15, 15), 2: (14, 16), 3: (13, 17), 4: (12, 18), 5: (11, 19)}
+    for gy, (start, end) in rows.items():
+        for gx in range(start, end + 1):
+            _spx(draw, gx, gy, _C_BLUE if (gx + gy) % 2 else _C_RED)
+    for gx in range(12, 19, 3):
+        _spx(draw, gx, 5, _C_GOLD)
+    _spx(draw, 15, 0, _C_GOLD)
+
+
+def _accessory_crown(draw: ImageDraw.ImageDraw):
+    for gx in range(11, 19):
+        _spx(draw, gx, 5, _C_GOLD)
+    for gx, gy in ((11, 4), (12, 3), (15, 2), (18, 3), (19, 4)):
+        _spx(draw, gx, gy, _C_GOLD)
+    for gx, gy in ((12, 3), (15, 2), (18, 3)):
+        _spx(draw, gx, gy + 1, _C_RED)
+
+
+def _accessory_bow_tie(draw: ImageDraw.ImageDraw):
+    for gx, gy in (
+        (11, 19), (12, 18), (12, 19), (12, 20), (13, 19),
+        (16, 19), (17, 18), (17, 19), (17, 20), (18, 19),
+    ):
+        _spx(draw, gx, gy, _C_RED)
+    _spx(draw, 14, 19, _C_DARK)
+    _spx(draw, 15, 19, _C_DARK)
+
+
+def _accessory_halo(draw: ImageDraw.ImageDraw):
+    for gx in range(11, 19):
+        _spx(draw, gx, 2, _C_GOLD)
+    for gx in (10, 19):
+        _spx(draw, gx, 3, _C_GOLD)
+    for gx in range(12, 18):
+        _spx(draw, gx, 3, (255, 244, 150))
+
+
+def _accessory_headphones(draw: ImageDraw.ImageDraw):
+    for gx in range(10, 20):
+        _spx(draw, gx, 6, _C_DARK)
+    for gy in range(8, 13):
+        _spx(draw, 8, gy, _C_DARK)
+        _spx(draw, 21, gy, _C_DARK)
+    for gy in range(9, 12):
+        _spx(draw, 9, gy, _C_BLUE)
+        _spx(draw, 20, gy, _C_BLUE)
+
+
+def _accessory_sleep_cap(draw: ImageDraw.ImageDraw):
+    for gx, gy in (
+        (12, 4), (13, 3), (14, 3), (15, 2), (16, 2), (17, 3), (18, 4),
+        (13, 4), (14, 4), (15, 4), (16, 4), (17, 4),
+    ):
+        _spx(draw, gx, gy, _C_BLUE)
+    _spx(draw, 19, 4, _C_SPARKLE)
+    _spx(draw, 18, 5, _C_SPARKLE)
+
+
+def _accessory_sparkle_horns(draw: ImageDraw.ImageDraw):
+    for gx, gy in ((7, 3), (22, 3), (6, 5), (23, 5), (8, 1), (21, 1)):
+        _spx(draw, gx, gy, _C_GOLD)
+
+
+_ACCESSORY_DRAWERS = {
+    "bowler": _accessory_bowler,
+    "party_hat": _accessory_party_hat,
+    "crown": _accessory_crown,
+    "bow_tie": _accessory_bow_tie,
+    "halo": _accessory_halo,
+    "headphones": _accessory_headphones,
+    "sleep_cap": _accessory_sleep_cap,
+    "sparkle_horns": _accessory_sparkle_horns,
+}
+
+
+def _apply_accessory(sprite: Image.Image, accessory: str) -> Image.Image:
+    img = sprite.copy()
+    drawer = _ACCESSORY_DRAWERS.get(accessory)
+    if drawer:
+        drawer(ImageDraw.Draw(img))
+    return img
+
+
 def _make_sprite(eyes_fn, mouth_fn, decor_fn=None) -> Image.Image:
     img = Image.new("RGB", (240, 240), (0, 0, 0))
     draw = ImageDraw.Draw(img)
@@ -666,6 +784,9 @@ class Display:
         self._cached_paragraphs: list[str] = []
         self._cached_wrapped: list[list[str]] = []
         self._sprite_frames = _generate_sprite_frames()
+        self._accessory_names = ("none",) + _ACCESSORY_NAMES
+        self._current_accessory = "none"
+        self._next_accessory_tick = 0
 
         self.clear()
 
@@ -847,6 +968,16 @@ class Display:
         with self._draw_lock:
             self.board.draw_image(0, 0, self._width, self._height, buf)
 
+    def _sprite_y_offset(self, sprite: Image.Image) -> int:
+        return max(0, int((self._height - sprite.height) / 2))
+
+    def _compose_sprite_frame(self, sprite: Image.Image, y_shift: int = 0) -> Image.Image:
+        if sprite.size == (self._width, self._height) and y_shift == 0:
+            return sprite.copy()
+        img = Image.new("RGB", (self._width, self._height), (0, 0, 0))
+        img.paste(sprite, (0, self._sprite_y_offset(sprite) - y_shift))
+        return img
+
     def set_status(
         self,
         text: str,
@@ -918,7 +1049,8 @@ class Display:
 
     def set_idle_screen(self):
         """Draw idle screen with the Imp logo, battery, and wifi status."""
-        img = self._sprite_frames.get(_idle_mood_key(), self._sprite_frames["idle"]).copy()
+        sprite = self._sprite_frames.get(_idle_mood_key(), self._sprite_frames["idle"])
+        img = self._compose_sprite_frame(sprite)
         draw = ImageDraw.Draw(img)
 
         draw.rectangle((0, 0, self._width, ACCENT_BAR_HEIGHT), fill=(40, 40, 40))
@@ -934,12 +1066,13 @@ class Display:
         label = "Imp"
         bbox = self._imp_font.getbbox(label)
         lw = (bbox[2] - bbox[0]) * IMP_LABEL_SCALE
+        lh = (bbox[3] - bbox[1]) * IMP_LABEL_SCALE
         self._draw_pixel_text(
             img,
-            (int((self._width - lw) / 2), 212),
+            (int((self._width - lw) / 2), self._height - lh - 2),
             label,
             self._imp_font,
-            fill=(255, 255, 255),
+            fill=(72, 72, 72),
             scale=IMP_LABEL_SCALE,
         )
 
@@ -951,10 +1084,10 @@ class Display:
     # ── Sprite-based animated character ─────────────────────────────
 
     _ACCENT_COLORS = {
-        "listening": (60, 140, 255),
-        "thinking": (255, 220, 50),
+        "listening": (0, 205, 95),
+        "thinking": (18, 18, 18),
         "talking": (0, 200, 100),
-        "done": (0, 160, 80),
+        "done": (18, 18, 18),
     }
 
     def start_character(self, state: str = "done", tts_player=None):
@@ -979,6 +1112,7 @@ class Display:
     def _character_loop(self):
         tick = 0
         frame_delay = 1.0 / max(1, getattr(config, "UI_MAX_FPS", 4))
+        accessory_mode = getattr(config, "IMP_ACCESSORY_MODE", "random")
         while not self._char_stop.is_set():
             state = self._char_state
             tts = getattr(self, "_char_tts", None)
@@ -1001,24 +1135,20 @@ class Display:
                 key += "_blink"
 
             sprite = self._sprite_frames.get(key, self._sprite_frames["idle"])
+            accessory = self._accessory_for_tick(tick, state, accessory_mode)
+            if accessory != "none":
+                sprite = _apply_accessory(sprite, accessory)
 
             # Gentle bob for idle / done states
             bob_px = 0
             if state in ("idle", "done"):
                 bob_px = _BOB_CYCLE[tick % len(_BOB_CYCLE)]
 
-            if bob_px > 0:
-                img = Image.new("RGB", (self._width, self._height), (0, 0, 0))
-                img.paste(sprite.crop((0, bob_px, self._width, self._height)), (0, 0))
-            else:
-                img = sprite.copy()
+            img = self._compose_sprite_frame(sprite, bob_px)
 
             draw = ImageDraw.Draw(img)
 
-            draw.rectangle(
-                (0, 0, self._width, ACCENT_BAR_HEIGHT),
-                fill=self._ACCENT_COLORS.get(state, (40, 40, 40)),
-            )
+            self._draw_top_indicator(draw, state)
 
             label = {"listening": "Imp listening...", "thinking": "Imp thinking..."}.get(state, "")
             if label:
@@ -1057,6 +1187,28 @@ class Display:
 
             tick += 1
             self._char_stop.wait(timeout=frame_delay)
+
+    def _accessory_for_tick(self, tick: int, state: str, mode: str) -> str:
+        if mode == "off":
+            return "none"
+        if state in ("listening", "thinking"):
+            return "none"
+        if tick >= self._next_accessory_tick:
+            self._next_accessory_tick = tick + random.randint(20, 55)
+            if mode == "always":
+                self._current_accessory = random.choice(_ACCESSORY_NAMES)
+            else:
+                self._current_accessory = random.choice(self._accessory_names)
+        return self._current_accessory
+
+    def _draw_top_indicator(self, draw: ImageDraw.ImageDraw, state: str):
+        draw.rectangle((0, 0, self._width, 14), fill=(0, 0, 0))
+        color = self._ACCENT_COLORS.get(state, (18, 18, 18))
+        active = state in ("listening", "talking")
+        if active:
+            draw.rounded_rectangle((58, 0, self._width - 58, 10), radius=5, fill=color)
+        else:
+            draw.rectangle((58, 0, self._width - 58, 3), fill=color)
 
     def _stop_animations(self):
         """Stop any running animation (spinner or character)."""

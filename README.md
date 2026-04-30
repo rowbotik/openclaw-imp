@@ -152,6 +152,7 @@ All settings are configured via environment variables (loaded from `.env`):
 | `DISPLAY_SLEEP_TIMEOUT` | `0` | Seconds before blanking the display while idle; `0` keeps the Imp visible |
 | `IMP_IDLE_MOOD` | `happy` | Idle sprite mood shown on the LCD |
 | `IMP_BODY_COLOR` | `yellow` | Imp body palette: `yellow`, `pink`, `red`, `blue`, or `green` |
+| `IMP_ACCESSORY_MODE` | `random` | Random pixel accessories: `off`, `random`, or `always` |
 | `ENABLE_LED` | `true` | Use the WhisPlay RGB status LED |
 | `LED_IDLE_BRIGHTNESS` | `0` | Idle LED brightness, `0` keeps it off |
 | `CONVERSATION_HISTORY_LENGTH` | `5` | Past exchanges to keep for context |
